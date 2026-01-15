@@ -139,3 +139,101 @@ Each stage is digitally recorded, monitored, and verified using QR codes, cloud 
 ## Conclusion
 This project introduces a **scalable and transparent digital traceability model** that strengthens food safety standards in Indian railway catering services.  
 By digitizing the entire food supply chain, the system ensures **hygiene, accountability, and regulatory compliance**.
+
+---
+
+## 🔐 Environment Variables Setup
+
+### Quick Setup
+
+1. **Copy the example file:**
+   ```bash
+   cp .env.example .env.local
+   ```
+
+2. **Fill in your actual credentials in `.env.local`**
+
+3. **Never commit `.env.local`** (already protected in `.gitignore`)
+
+### Environment Variables
+
+#### 🔒 Server-Side Only (Never exposed to browser)
+
+| Variable | Purpose | Example |
+|----------|---------|---------|
+| `DATABASE_URL` | PostgreSQL connection | `postgres://user:pass@localhost:5432/db` |
+| `AWS_REGION` | AWS region | `us-east-1` |
+| `AWS_ACCESS_KEY_ID` | AWS credentials | From AWS IAM |
+| `AWS_SECRET_ACCESS_KEY` | AWS secret key | From AWS IAM |
+| `AWS_S3_BUCKET_NAME` | S3 bucket name | `supplysafe-storage` |
+| `AZURE_STORAGE_CONNECTION_STRING` | Azure connection | From Azure Portal |
+| `AZURE_STORAGE_ACCOUNT_NAME` | Azure account | `supplysafe` |
+| `AZURE_STORAGE_CONTAINER_NAME` | Azure container | `food-images` |
+| `JWT_SECRET` | JWT signing secret | Min 32 chars, generate with `openssl rand -base64 32` |
+| `SESSION_SECRET` | Session encryption | Min 32 chars, generate with `openssl rand -base64 32` |
+| `SENDGRID_API_KEY` | Email service | From SendGrid dashboard |
+| `STRIPE_SECRET_KEY` | Payment processing | `sk_test_...` from Stripe |
+
+#### 🌐 Client-Side Safe (Must have `NEXT_PUBLIC_` prefix)
+
+| Variable | Purpose | Example |
+|----------|---------|---------|
+| `NEXT_PUBLIC_API_BASE_URL` | API base URL | `http://localhost:3000` |
+| `NEXT_PUBLIC_APP_NAME` | App display name | `SupplySafe` |
+| `NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY` | Stripe public key | `pk_test_...` |
+
+### Usage Rules
+
+**✅ DO:**
+- Use `NEXT_PUBLIC_` prefix for variables needed in client components
+- Access server-only variables in Server Components, API routes, or server actions
+- Keep secrets strong (min 32 chars for JWT/Session)
+- Restart dev server after changing env variables
+
+**❌ DON'T:**
+- Commit `.env.local` to Git
+- Use server variables (without `NEXT_PUBLIC_`) in client components
+- Expose sensitive data to the client
+- Share your `.env.local` file
+
+### Example Usage
+
+**Server-side (API Route):**
+```typescript
+// app/api/upload/route.ts
+export async function POST(req: Request) {
+  // ✅ Safe: Server-only
+  const s3 = new S3Client({
+    credentials: {
+      accessKeyId: process.env.AWS_ACCESS_KEY_ID,
+      secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY,
+    }
+  });
+}
+```
+
+**Client-side (Component):**
+```typescript
+'use client';
+
+export default function Dashboard() {
+  const apiUrl = process.env.NEXT_PUBLIC_API_BASE_URL;
+  
+  const secret = process.env.JWT_SECRET;
+}
+```
+
+### Common Pitfalls
+
+- **Variable is undefined**: Check spelling, restart dev server
+- **Can't access in client**: Add `NEXT_PUBLIC_` prefix
+- **Changes not working**: `NEXT_PUBLIC_` vars need rebuild: `npm run build`
+- **Build fails**: Check required variables are set in `.env.local`
+
+### Resources
+
+- [Next.js Environment Variables](https://nextjs.org/docs/app/building-your-application/configuring/environment-variables)
+- [12-Factor App Config](https://12factor.net/config)
+- [Vercel Environment Variables](https://vercel.com/docs/concepts/projects/environment-variables)
+
+---
