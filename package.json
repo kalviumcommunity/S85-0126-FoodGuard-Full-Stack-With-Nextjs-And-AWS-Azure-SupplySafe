@@ -2,13 +2,12 @@
   "name": "supplysafe",
   "version": "0.1.0",
   "private": true,
-  "scripts": {
-    "dev": "next dev",
-    "build": "next build",
-    "start": "next start",
-    "lint": "eslint",
-    "prepare": "husky install"
-  },
+ "scripts": {
+  "dev": "next dev",
+  "build:development": "env-cmd -f .env.development next build",
+  "build:staging": "env-cmd -f .env.staging next build",
+  "build:production": "env-cmd -f .env.production next build"
+},
   "dependencies": {
     "next": "16.1.2",
     "react": "19.2.3",
@@ -21,6 +20,7 @@
     "@types/react-dom": "^19",
     "@typescript-eslint/eslint-plugin": "^8.53.0",
     "@typescript-eslint/parser": "^8.53.0",
+    "env-cmd": "^11.0.0",
     "eslint": "^9.39.2",
     "eslint-config-next": "^16.1.2",
     "eslint-config-prettier": "^10.1.8",
