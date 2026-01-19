@@ -4,10 +4,9 @@
   "private": true,
   "scripts": {
     "dev": "next dev",
-    "build": "next build",
-    "start": "next start",
-    "lint": "eslint",
-    "prepare": "husky install"
+    "build:development": "env-cmd -f .env.development next build",
+    "build:staging": "env-cmd -f .env.staging next build",
+    "build:production": "env-cmd -f .env.production next build"
   },
   "dependencies": {
     "next": "16.1.2",
@@ -21,11 +20,12 @@
     "@types/react-dom": "^19",
     "@typescript-eslint/eslint-plugin": "^8.53.0",
     "@typescript-eslint/parser": "^8.53.0",
+    "env-cmd": "^11.0.0",
     "eslint": "^9.39.2",
     "eslint-config-next": "^16.1.2",
     "eslint-config-prettier": "^10.1.8",
     "eslint-plugin-prettier": "^5.5.5",
-    "husky": "^8.0.0",
+    "husky": "^9.0.11",
     "lint-staged": "^16.2.7",
     "prettier": "^3.8.0",
     "tailwindcss": "^4",
