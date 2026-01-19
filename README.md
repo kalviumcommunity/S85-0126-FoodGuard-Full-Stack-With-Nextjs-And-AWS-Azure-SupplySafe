@@ -23,8 +23,6 @@ To design a **digital, end-to-end food traceability and compliance system** that
 ## ⚙️ 3. Proposed Solution Overview
 The system digitally tracks food across its entire lifecycle:
 
-
-
 **Lifecycle Flow:**
 1. **Supplier:** Onboarded with verified FSSAI credentials.
 2. **Ingredient Batch:** Unique IDs generated for raw materials.
@@ -88,65 +86,3 @@ supplysafe/
 ├── .env.example            # Environment variables template
 ├── package.json            # Scripts & Dependencies
 └── README.md               # Project Documentation
-
-
----
-
-## ⚙️ 7. Environment & Build Configuration
-
-### 7.1 Multi-Environment Logic
-To ensure security and prevent the leakage of sensitive credentials (like database URLs or API keys), the system utilizes a tiered environment configuration. This separation ensures that development data never mixes with live railway production data.
-
-* **.env.development**: Used for local coding and UI testing.
-* **.env.staging**: A mirror of the production environment used for final QA and UAT (User Acceptance Testing).
-* **.env.production**: The secure, live environment connected to official railway servers.
-
-### 7.2 Build Scripts (`package.json`)
-We use `env-cmd` to inject the correct environment variables during the build process. This allows for a "Build Once, Deploy Anywhere" workflow.
-
-```json
-"scripts": {
-  "dev": "next dev",
-  "build:dev": "env-cmd -f .env.development next build",
-  "build:stage": "env-cmd -f .env.staging next build",
-  "build:prod": "env-cmd -f .env.production next build",
-  "start": "next start"
-}
-
-
----
-
-## ✅ 8. Expected Outcomes
-
-The implementation of the Digital Food Traceability System is expected to yield the following high-impact results:
-
-* **🛡️ Enhanced Safety:** A significant reduction in food-borne illness reports by ensuring only verified ingredients enter the supply chain.
-* **⚡ Rapid Response (Speed):** Instant identification and "Kill-Switch" capability for "bad batches" to halt distribution across all affected trains within minutes.
-* **📊 Operational Efficiency:** Transition to 100% digital audit trails, eliminating the need for manual paperwork and physical record storage.
-* **⚖️ Strict Accountability:** Implementation of data-driven penalties and automated performance scoring for non-compliant vendors.
-
-
-
----
-
-## 🔮 9. Future Roadmap
-
-Our vision for the next phase of the system includes:
-
-* **🔗 Blockchain Integration:** Implementing **Hyperledger Fabric** to create immutable, tamper-proof logs of every touchpoint in the food lifecycle, ensuring absolute data integrity.
-* **📡 IoT Smart Sensors:** Integration of real-time temperature and humidity sensors in pantry car refrigerators with automated cloud-based logging and threshold alerts.
-* **🤖 AI-Powered Risk Analysis:** Developing predictive models to identify hygiene risks by correlating historical data with external factors like ambient temperature, transit delays, and seasonal trends.
-
-
-
----
-
-## 👥 10. Team Members
-
-| Name | Role / Area of Expertise |
-| :--- | :--- |
-| **Sanya Jain** | System Design & Backend Architecture |
-| **Madhav Garg** | Frontend Implementation & UI/UX |
-| **Nikunj Kohli** | Quality Assurance & Deployment |
-
----
