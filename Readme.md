@@ -141,12 +141,47 @@ Our vision for the next phase of the system includes:
 
 ---
 
-## 👥 10. Team Members
+## � 10. Development Workflow
 
-| Name | Role / Area of Expertise |
+### Branch Strategy
+```
+feature/<name>    # New features
+fix/<name>        # Bug fixes  
+chore/<name>      # Maintenance
+docs/<name>       # Documentation
+```
+
+### PR Rules
+- Branch from `main`
+- Get 1+ review before merge
+- Squash commits on merge
+- Delete branch after merge
+
+### Review Checklist
+```
+✓ Code follows project structure
+✓ Tested locally
+✓ No errors/warnings
+✓ Linting passes
+✓ No hardcoded secrets
+✓ Issue linked
+```
+
+### Branch Protection
+Main branch requires:
+- PR reviews (min 1)
+- Status checks pass
+- Branch up-to-date
+- No direct pushes
+
+---
+
+## 👥 11. Team
+
+| Name | Role |
 | :--- | :--- |
-| **Sanya Jain** | System Design & Backend Architecture |
-| **Madhav Garg** | Frontend Implementation & UI/UX |
-| **Nikunj Kohli** | Quality Assurance & Deployment |
+| **Sanya Jain** | Backend & Architecture |
+| **Madhav Garg** | Frontend & UI/UX |
+| **Nikunj Kohli** | QA & Deployment |
 
 ---
