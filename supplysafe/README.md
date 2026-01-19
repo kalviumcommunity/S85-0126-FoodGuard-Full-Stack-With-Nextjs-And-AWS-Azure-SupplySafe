@@ -61,7 +61,7 @@ The system digitally tracks food across its entire lifecycle:
 
 | Layer | Technology |
 | :--- | :--- |
-| **Frontend** | Next.js 15 (App Router), TypeScript |
+| **Frontend** | Next.js 16 (App Router), TypeScript |
 | **UI/UX** | Tailwind CSS, Lucide Icons, Shadcn/UI |
 | **Backend** | Node.js / Next.js Server Actions |
 | **Database** | PostgreSQL (Prisma ORM) |
