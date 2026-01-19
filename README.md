@@ -86,3 +86,199 @@ supplysafe/
 ├── .env.example            # Environment variables template
 ├── package.json            # Scripts & Dependencies
 └── README.md               # Project Documentation
+
+
+
+
+
+
+# 2.13
+
+## 1. Project Overview
+
+This project uses **PostgreSQL** as the relational database and **Prisma ORM** for data modeling and migrations.
+
+The database is designed to support:
+
+* **Scalability** — can handle growth in users, projects, and tasks.
+* **Consistency** — ensures no duplicate or inconsistent data.
+* **Efficient querying** — optimized with indexes on frequently queried fields.
+
+The database schema follows **3NF (Third Normal Form)** to avoid redundancy and maintain data integrity.
+
+---
+
+## 2. Core Entities
+
+| Entity      | Description                                   |
+| ----------- | --------------------------------------------- |
+| **User**    | Represents registered users or team members.  |
+| **Project** | Represents ongoing or completed projects.     |
+| **Task**    | Represents individual tasks within a project. |
+| **Comment** | Comments associated with tasks.               |
+| **Team**    | Teams that users belong to.                   |
+
+---
+
+## 3. Relational Schema (Prisma Example)
+
+```prisma
+model User {
+  id        Int       @id @default(autoincrement())
+  name      String
+  email     String    @unique
+  createdAt DateTime  @default(now())
+  projects  Project[]
+  tasks     Task[]    @relation("AssignedTasks")
+}
+
+model Project {
+  id          Int       @id @default(autoincrement())
+  name        String
+  description String?
+  createdAt   DateTime  @default(now())
+  userId      Int
+  user        User      @relation(fields: [userId], references: [id])
+  tasks       Task[]
+}
+
+model Task {
+  id          Int       @id @default(autoincrement())
+  title       String
+  description String?
+  status      String    @default("pending")
+  projectId   Int
+  project     Project   @relation(fields: [projectId], references: [id])
+  assignedTo  Int?
+  assignee    User?     @relation("AssignedTasks", fields: [assignedTo], references: [id])
+  comments    Comment[]
+}
+
+model Comment {
+  id        Int      @id @default(autoincrement())
+  content   String
+  createdAt DateTime @default(now())
+  taskId    Int
+  task      Task     @relation(fields: [taskId], references: [id])
+  userId    Int
+  user      User     @relation(fields: [userId], references: [id])
+}
+
+model Team {
+  id       Int     @id @default(autoincrement())
+  name     String
+  users    User[]  @relation(references: [id])
+}
+```
+
+---
+
+## 4. Keys, Constraints & Relationships
+
+* **Primary Keys (PK):**
+
+  * `id` in all tables uniquely identifies each record.
+
+* **Foreign Keys (FK):**
+
+  * `Project.userId → User.id`
+  * `Task.projectId → Project.id`
+  * `Task.assignedTo → User.id`
+  * `Comment.taskId → Task.id`
+  * `Comment.userId → User.id`
+
+* **Constraints:**
+
+  * `email` in User is **UNIQUE**.
+  * Mandatory fields are **NOT NULL**.
+  * `ON DELETE CASCADE` applied where appropriate to maintain referential integrity.
+
+* **Indexes:**
+
+  * Automatically added for PKs.
+  * Additional indexes can be created on frequently queried fields like `Task.status` or `Project.userId`.
+
+---
+
+## 5. Normalization
+
+* **1NF (First Normal Form):** All attributes are atomic; no repeating groups.
+* **2NF (Second Normal Form):** All non-key attributes fully depend on the primary key.
+* **3NF (Third Normal Form):** No transitive dependencies exist between non-key attributes.
+
+---
+
+## 6. Applying Migrations
+
+To create tables in PostgreSQL using Prisma:
+
+```bash
+npx prisma migrate dev --name init_schema
+```
+
+Verify created tables:
+
+```bash
+npx prisma studio
+```
+
+---
+
+## 7. Seed Data
+
+Insert sample records for testing:
+
+```ts
+// prisma/seed.ts
+import { PrismaClient } from '@prisma/client';
+const prisma = new PrismaClient();
+
+async function main() {
+  const user = await prisma.user.create({
+    data: { name: "Alice", email: "alice@example.com" }
+  });
+
+  const project = await prisma.project.create({
+    data: { name: "Project A", userId: user.id }
+  });
+
+  const task = await prisma.task.create({
+    data: { title: "Task 1", projectId: project.id, status: "pending" }
+  });
+
+  console.log({ user, project, task });
+}
+
+main()
+  .catch(e => console.error(e))
+  .finally(async () => { await prisma.$disconnect() });
+```
+
+---
+
+## 8. Reflections
+
+* **Scalability:**
+  The schema supports adding new users, projects, and tasks without redesign. Relationships are modular, allowing flexible queries.
+
+* **Common Queries Supported Efficiently:**
+
+  * Fetch all projects for a user.
+  * Fetch all tasks in a project.
+  * Fetch all comments for a task.
+  * Fetch tasks assigned to a specific user.
+
+* **Normalization Benefits:**
+  Reduces data redundancy, avoids inconsistencies, and simplifies updates and deletions.
+
+---
+
+## 9. Resources
+
+* [PostgreSQL Table Constraints](https://www.postgresql.org/docs/current/ddl-constraints.html)
+* [PostgreSQL Indexes](https://www.postgresql.org/docs/current/indexes.html)
+* [Prisma Schema Reference](https://www.prisma.io/docs/concepts/components/prisma-schema)
+* [Prisma Migrate](https://www.prisma.io/docs/concepts/components/prisma-migrate)
+* [Database Normalization Basics](https://learn.microsoft.com/en-us/sql/relational-databases/database-normalization)
+
+
