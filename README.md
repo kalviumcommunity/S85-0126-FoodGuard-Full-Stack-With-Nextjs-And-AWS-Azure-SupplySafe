@@ -3,7 +3,14 @@
 
 ---
 
-## 📋 1. Problem Statement
+## � Quick Links
+
+- [🗄️ Database Setup & Migrations](DATABASE_SETUP.md) - Complete guide for database migrations and seeding
+- [📖 Project Documentation](#) - Full system documentation
+
+---
+
+## �📋 1. Problem Statement
 Indian Railway Catering Services face persistent **food safety and hygiene complaints** due to the absence of a digital traceability mechanism. 
 * **Manual Records:** Reliance on paper-based logs leads to errors.
 * **Untracked Suppliers:** Difficult to trace raw material origins once cooked.
