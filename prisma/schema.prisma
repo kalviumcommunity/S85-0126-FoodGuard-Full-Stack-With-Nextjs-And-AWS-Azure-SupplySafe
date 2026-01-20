@@ -1,100 +1,23 @@
-generator client {
-  provider = "prisma-client-js"
-}
-
 datasource db {
   provider = "postgresql"
   url      = env("DATABASE_URL")
+}
+
+generator client {
+  provider = "prisma-client-js"
 }
 
 model User {
   id        Int       @id @default(autoincrement())
   name      String
   email     String    @unique
-  role      String    // "admin", "staff", "passenger"
   createdAt DateTime  @default(now())
-
-  feedbacks Feedback[]
-  mealItems MealItem[]
+  projects  Project[]
 }
 
-model Supplier {
-  id        Int      @id @default(autoincrement())
+model Project {
+  id        Int       @id @default(autoincrement())
   name      String
-  fssaiId   String   @unique
-  location  String
-  createdAt DateTime @default(now())
-
-  ingredients Ingredient[]
-}
-
-model Ingredient {
-  id          Int      @id @default(autoincrement())
-  name        String
-  batchCode   String   @unique
-  supplierId  Int
-  supplier    Supplier @relation(fields: [supplierId], references: [id])
-  expiryDate  DateTime
-}
-
-model Kitchen {
-  id        Int      @id @default(autoincrement())
-  name      String
-  location  String
-  createdAt DateTime @default(now())
-
-  mealBatches MealBatch[]
-}
-
-model MealBatch {
-  id           Int       @id @default(autoincrement())
-  kitchenId    Int
-  kitchen      Kitchen   @relation(fields: [kitchenId], references: [id], onDelete: Cascade)
-  preparedAt   DateTime  @default(now())
-  temperature  Float?
-  statusId     Int
-  status       Status    @relation(fields: [statusId], references: [id])
-  transportId  Int?
-  transport    Transport? @relation(fields: [transportId], references: [id])
-
-  mealItems MealItem[]
-}
-
-model MealItem {
-  id         Int      @id @default(autoincrement())
-  qrCode     String   @unique
-  batchId    Int
-  batch      MealBatch @relation(fields: [batchId], references: [id])
-  userId     Int?
-  user       User?     @relation(fields: [userId], references: [id])
-  servedAt   DateTime?
-}
-
-model Transport {
-  id          Int       @id @default(autoincrement())
-  vehicleNo   String
-  gpsLog      String?   // Could store JSON with coordinates
-  startTime   DateTime
-  endTime     DateTime?
-  driverName  String?
-
-  mealBatches MealBatch[]
-}
-
-model Feedback {
-  id        Int      @id @default(autoincrement())
   userId    Int
-  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  mealItemId Int
-  mealItem  MealItem @relation(fields: [mealItemId], references: [id], onDelete: Cascade)
-  rating    Int
-  comment   String?
-  createdAt DateTime @default(now())
-}
-
-model Status {
-  id     Int    @id @default(autoincrement())
-  name   String @unique // e.g., "Prepared", "In Transit", "Delivered", "Expired"
-
-  mealBatches MealBatch[]
+  user      User      @relation(fields: [userId], references: [id])
 }
