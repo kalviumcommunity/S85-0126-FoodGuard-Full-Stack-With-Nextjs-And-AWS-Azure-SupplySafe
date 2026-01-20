@@ -6,68 +6,58 @@ datasource db {
   provider = "postgresql"
 }
 
-// User Management
 model User {
-  id        String   @id @default(uuid())
-  email     String   @unique
+  id        String     @id @default(uuid())
+  email     String     @unique
   name      String
   password  String
-  role      Role     @default(USER)
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-  
-  suppliers Supplier[]
+  role      Role       @default(USER)
+  createdAt DateTime   @default(now())
+  updatedAt DateTime   @updatedAt
   orders    Order[]
-  
+  suppliers Supplier[]
+
   @@map("users")
 }
 
-enum Role {
-  USER
-  SUPPLIER
-  ADMIN
-}
-
-// Supplier Management
 model Supplier {
-  id          String   @id @default(uuid())
+  id          String    @id @default(uuid())
   name        String
-  email       String   @unique
+  email       String    @unique
   phone       String?
   address     String?
   description String?
-  verified    Boolean  @default(false)
+  verified    Boolean   @default(false)
   userId      String
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
-  
-  user     User      @relation(fields: [userId], references: [id], onDelete: Cascade)
-  products Product[]
-  
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  products    Product[]
+  user        User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
   @@map("suppliers")
 }
 
-// Product Catalog
 model Product {
-  id          String   @id @default(uuid())
+  id          String      @id @default(uuid())
   name        String
   description String?
   category    String
   price       Float
   unit        String
   imageUrl    String?
-  inStock     Boolean  @default(true)
+  inStock     Boolean     @default(true)
   supplierId  String
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
-  
-  supplier   Supplier    @relation(fields: [supplierId], references: [id], onDelete: Cascade)
-  orderItems OrderItem[]
-  
+  createdAt   DateTime    @default(now())
+  updatedAt   DateTime    @updatedAt
+  orderItems  OrderItem[]
+  supplier    Supplier    @relation(fields: [supplierId], references: [id], onDelete: Cascade)
+
+  // INDEXES for Optimization
+  @@index([category])
+  @@index([supplierId])
   @@map("products")
 }
 
-// Order Management
 model Order {
   id           String      @id @default(uuid())
   orderNumber  String      @unique
@@ -78,11 +68,32 @@ model Order {
   userId       String
   createdAt    DateTime    @default(now())
   updatedAt    DateTime    @updatedAt
-  
-  user       User        @relation(fields: [userId], references: [id], onDelete: Cascade)
-  orderItems OrderItem[]
-  
+  orderItems   OrderItem[]
+  user         User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  // INDEXES for Optimization
+  @@index([userId])
+  @@index([status])
   @@map("orders")
+}
+
+model OrderItem {
+  id        String   @id @default(uuid())
+  quantity  Int
+  price     Float
+  orderId   String
+  productId String
+  createdAt DateTime @default(now())
+  order     Order    @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  product   Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
+
+  @@map("order_items")
+}
+
+enum Role {
+  USER
+  SUPPLIER
+  ADMIN
 }
 
 enum OrderStatus {
@@ -92,19 +103,4 @@ enum OrderStatus {
   SHIPPED
   DELIVERED
   CANCELLED
-}
-
-// Order Items
-model OrderItem {
-  id        String   @id @default(uuid())
-  quantity  Int
-  price     Float
-  orderId   String
-  productId String
-  createdAt DateTime @default(now())
-  
-  order   Order   @relation(fields: [orderId], references: [id], onDelete: Cascade)
-  product Product @relation(fields: [productId], references: [id], onDelete: Cascade)
-  
-  @@map("order_items")
 }
