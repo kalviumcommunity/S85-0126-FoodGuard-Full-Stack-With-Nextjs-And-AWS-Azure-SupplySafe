@@ -86,3 +86,84 @@ supplysafe/
 ├── .env.example            # Environment variables template
 ├── package.json            # Scripts & Dependencies
 └── README.md               # Project Documentation
+
+---
+
+## 🧬 7. Prisma ORM Setup
+
+### Purpose
+Prisma is used as the ORM layer to:
+- Provide type-safe database queries
+- Keep the database schema versioned in code (`prisma/schema.prisma`)
+- Generate a typed client (`@prisma/client`) for use in the Next.js app
+
+### Setup Steps
+From the project root:
+```bash
+npm install
+npx prisma generate
+```
+
+### Environment Variables
+Set `DATABASE_URL` in your local env file (for example `.env.development`):
+```env
+DATABASE_URL="postgresql://postgres:password@localhost:5432/mydb"
+```
+
+### Schema
+The schema lives in:
+- `prisma/schema.prisma`
+
+Example snippet:
+```prisma
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+model User {
+  id        Int      @id @default(autoincrement())
+  name      String
+  email     String   @unique
+  createdAt DateTime @default(now())
+}
+```
+
+### Prisma Client Initialization
+Prisma Client is initialized here:
+- `src/lib/prisma.ts`
+
+```ts
+import { PrismaClient } from "@prisma/client";
+
+const globalForPrisma = globalThis as unknown as {
+  prisma: PrismaClient | undefined;
+};
+
+export const prisma =
+  globalForPrisma.prisma ||
+  new PrismaClient({
+    log: ["query", "info", "warn", "error"],
+  });
+
+if (process.env.NODE_ENV !== "production") globalForPrisma.prisma = prisma;
+```
+
+### Test Query / Verification
+For a quick verification, the project includes a minimal API route:
+- `GET /api/users` (file: `src/app/api/users/route.ts`)
+
+After starting the app (`npm run dev`), visit:
+- `http://localhost:3000/api/users`
+
+If the DB is reachable and migrations are applied, you should see a JSON array response.
+
+### Reflection
+Prisma improves:
+- Type safety: generated types for models and queries
+- Query reliability: safer query construction and validation
+- Productivity: faster iteration with schema-driven development
