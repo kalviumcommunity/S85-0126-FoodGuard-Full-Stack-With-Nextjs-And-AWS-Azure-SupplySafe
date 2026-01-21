@@ -3,6 +3,7 @@
 
 ---
 
+
 ## 📌 Overview
 The **Digital Food Traceability System (DFTS)** is a full-stack web application designed to ensure **food safety, hygiene compliance, and accountability** across Indian Railway Catering Services.  
 It provides **end-to-end digital traceability** of food items from **supplier → kitchen → transport → passenger**, enabling real-time monitoring, faster complaint resolution, and increased passenger trust.
@@ -16,6 +17,7 @@ Indian Railway Catering Services face persistent **food safety and hygiene compl
 - **Manual Records:** Paper-based logs lead to data loss and human errors  
 - **Untracked Suppliers:** Ingredient origins cannot be traced once cooking begins  
 - **Delayed Resolution:** Passenger complaints cannot be mapped to specific food batches  
+
 
 ---
 

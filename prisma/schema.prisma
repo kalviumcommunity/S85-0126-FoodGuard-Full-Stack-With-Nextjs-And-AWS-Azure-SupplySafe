@@ -1,3 +1,4 @@
+
 datasource db {
   provider = "postgresql"
 }
@@ -6,17 +7,105 @@ generator client {
   provider = "prisma-client-js"
 }
 
-model User {
-  id        Int       @id @default(autoincrement())
-  name      String
-  email     String    @unique
-  createdAt DateTime  @default(now())
-  projects  Project[]
+datasource db {
+  provider = "postgresql"
 }
 
-model Project {
-  id        Int       @id @default(autoincrement())
+model User {
+  id        String     @id @default(uuid())
+  email     String     @unique
   name      String
-  userId    Int
-  user      User      @relation(fields: [userId], references: [id])
+  password  String
+  role      Role       @default(USER)
+  createdAt DateTime   @default(now())
+  updatedAt DateTime   @updatedAt
+  orders    Order[]
+  suppliers Supplier[]
+
+  @@map("users")
+}
+
+model Supplier {
+  id          String    @id @default(uuid())
+  name        String
+  email       String    @unique
+  phone       String?
+  address     String?
+  description String?
+  verified    Boolean   @default(false)
+  userId      String
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  products    Product[]
+  user        User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("suppliers")
+}
+
+model Product {
+  id          String      @id @default(uuid())
+  name        String
+  description String?
+  category    String
+  price       Float
+  unit        String
+  imageUrl    String?
+  inStock     Boolean     @default(true)
+  supplierId  String
+  createdAt   DateTime    @default(now())
+  updatedAt   DateTime    @updatedAt
+  orderItems  OrderItem[]
+  supplier    Supplier    @relation(fields: [supplierId], references: [id], onDelete: Cascade)
+
+  // INDEXES for Optimization
+  @@index([category])
+  @@index([supplierId])
+  @@map("products")
+}
+
+model Order {
+  id           String      @id @default(uuid())
+  orderNumber  String      @unique
+  status       OrderStatus @default(PENDING)
+  totalAmount  Float
+  deliveryDate DateTime?
+  notes        String?
+  userId       String
+  createdAt    DateTime    @default(now())
+  updatedAt    DateTime    @updatedAt
+  orderItems   OrderItem[]
+  user         User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  // INDEXES for Optimization
+  @@index([userId])
+  @@index([status])
+  @@map("orders")
+}
+
+model OrderItem {
+  id        String   @id @default(uuid())
+  quantity  Int
+  price     Float
+  orderId   String
+  productId String
+  createdAt DateTime @default(now())
+  order     Order    @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  product   Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
+
+  @@map("order_items")
+}
+
+enum Role {
+  USER
+  SUPPLIER
+  ADMIN
+}
+
+enum OrderStatus {
+  PENDING
+  CONFIRMED
+  PROCESSING
+  SHIPPED
+  DELIVERED
+  CANCELLED
 }
