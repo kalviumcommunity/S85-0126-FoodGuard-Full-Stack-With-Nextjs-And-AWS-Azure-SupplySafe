@@ -134,24 +134,7 @@ DATABASE_URL="postgresql://postgres:password@localhost:5432/mydb"
 The schema lives in:
 - `prisma/schema.prisma`
 
-Example snippet:
-```prisma
-datasource db {
-  provider = "postgresql"
-  url      = env("DATABASE_URL")
-}
-
-generator client {
-  provider = "prisma-client-js"
-}
-
-model User {
-  id        Int      @id @default(autoincrement())
-  name      String
-  email     String   @unique
-  createdAt DateTime @default(now())
-}
-```
+**Note (Prisma v7)**: Connection URLs are configured via `prisma.config.ts` (not via `url = env("DATABASE_URL")` inside `schema.prisma`).
 
 ### Prisma Client Initialization
 Prisma Client is initialized here:
@@ -310,6 +293,48 @@ Response: { success: true, data: User, message: "User fetched successfully" }
 Request: { name?, email?, role? }
 Response: { success: true, data: User, message: "User updated successfully" }
 ```
+
+---
+
+## ✅ Input Validation with Zod (Kalvium)
+
+FoodGuard validates **all POST/PUT request bodies** using **Zod** before running business logic or writing to the database.
+
+### Shared Schemas
+
+- `src/lib/schemas/userSchema.ts`
+- `src/lib/schemas/supplierSchema.ts`
+- `src/lib/schemas/productSchema.ts`
+- `src/lib/schemas/orderSchema.ts`
+
+### Error Handling
+
+If validation fails, APIs return a structured 400 response using the global response handler:
+
+- `code`: `E001` (`ERROR_CODES.VALIDATION_ERROR`)
+- `details`: array of `{ field, message }` (only in development mode)
+
+### Quick Tests
+
+✅ Passing example (create user):
+
+```bash
+curl -X POST http://localhost:3000/api/users ^
+  -H "Content-Type: application/json" ^
+  -d "{\"name\":\"Alice\",\"email\":\"alice@example.com\",\"password\":\"password123\",\"role\":\"USER\"}"
+```
+
+❌ Failing example (invalid email + short name):
+
+```bash
+curl -X POST http://localhost:3000/api/users ^
+  -H "Content-Type: application/json" ^
+  -d "{\"name\":\"A\",\"email\":\"bademail\",\"password\":\"password123\"}"
+```
+
+### Reflection
+
+Zod protects the backend by rejecting malformed or missing fields **before** any database call happens, and it improves collaboration by providing consistent, field-level error messages that frontend developers can fix immediately.
 
 **DELETE** `/api/users/:id`
 ```typescript

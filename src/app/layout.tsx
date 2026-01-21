@@ -14,7 +14,8 @@ const geistMono = Geist_Mono({
 
 export const metadata: Metadata = {
   title: "SupplySafe - Food Supply Chain Management",
-  description: "A comprehensive food supply chain management system built with Next.js",
+  description:
+    "A comprehensive food supply chain management system built with Next.js",
 };
 
 export default function RootLayout({

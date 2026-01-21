@@ -5,9 +5,7 @@ export default function Home() {
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100">
       <div className="container mx-auto px-4 py-16">
         <div className="text-center mb-12">
-          <h1 className="text-4xl font-bold text-gray-900 mb-4">
-            SupplySafe
-          </h1>
+          <h1 className="text-4xl font-bold text-gray-900 mb-4">SupplySafe</h1>
           <p className="text-xl text-gray-600">
             Food Supply Chain Management System
           </p>
@@ -34,8 +32,12 @@ export default function Home() {
             href="/dashboard"
             className="bg-white rounded-lg shadow-md p-6 hover:shadow-lg transition-shadow"
           >
-            <h2 className="text-2xl font-semibold text-gray-800 mb-2">Dashboard</h2>
-            <p className="text-gray-600">View real-time metrics and analytics</p>
+            <h2 className="text-2xl font-semibold text-gray-800 mb-2">
+              Dashboard
+            </h2>
+            <p className="text-gray-600">
+              View real-time metrics and analytics
+            </p>
           </Link>
 
           <Link

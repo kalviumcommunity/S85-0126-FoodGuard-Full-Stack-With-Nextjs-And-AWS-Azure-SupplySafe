@@ -4,6 +4,8 @@ import { PrismaClient } from "@prisma/client";
 import { PrismaPg } from "@prisma/adapter-pg";
 import pg from "pg";
 import * as bcrypt from "bcryptjs";
+import { createUserSchema } from "@/lib/schemas/userSchema";
+import { formatZodIssues, isZodError } from "@/lib/validation";
 
 const pool = new pg.Pool({ connectionString: process.env.DATABASE_URL });
 const adapter = new PrismaPg(pool);
@@ -40,20 +42,8 @@ export async function GET() {
 export async function POST(req: Request) {
   try {
     const body = await req.json();
-    const { name, email, password, role = "USER" } = body;
-
-    if (!name || !email || !password) {
-      return sendError(
-        "Missing required fields: name, email, or password",
-        ERROR_CODES.MISSING_FIELD,
-        400
-      );
-    }
-
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    if (!emailRegex.test(email)) {
-      return sendError("Invalid email format", ERROR_CODES.INVALID_EMAIL, 400);
-    }
+    const parsed = createUserSchema.parse(body);
+    const { name, email, password, role } = parsed;
 
     const existingUser = await prisma.user.findUnique({
       where: { email },
@@ -87,6 +77,14 @@ export async function POST(req: Request) {
 
     return sendSuccess(user, "User created successfully", 201);
   } catch (error) {
+    if (isZodError(error)) {
+      return sendError(
+        "Validation Error",
+        ERROR_CODES.VALIDATION_ERROR,
+        400,
+        formatZodIssues(error.issues)
+      );
+    }
     return sendError(
       "Failed to create user",
       ERROR_CODES.DATABASE_ERROR,
