@@ -3,113 +3,126 @@
 
 ---
 
-## � Quick Links
 
-- [🗄️ Database Setup & Migrations](DATABASE_SETUP.md) - Complete guide for database migrations and seeding
-- [📖 Project Documentation](#) - Full system documentation
-
----
-
-## �📋 1. Problem Statement
-Indian Railway Catering Services face persistent **food safety and hygiene complaints** due to the absence of a digital traceability mechanism. 
-* **Manual Records:** Reliance on paper-based logs leads to errors.
-* **Untracked Suppliers:** Difficult to trace raw material origins once cooked.
-* **Delayed Resolution:** No real-time mapping between a passenger complaint and a specific food batch.
+## 📌 Overview
+The **Digital Food Traceability System (DFTS)** is a full-stack web application designed to ensure **food safety, hygiene compliance, and accountability** across Indian Railway Catering Services.  
+It provides **end-to-end digital traceability** of food items from **supplier → kitchen → transport → passenger**, enabling real-time monitoring, faster complaint resolution, and increased passenger trust.
 
 ---
 
-## 🎯 2. Project Objective
-To design a **digital, end-to-end food traceability and compliance system** that ensures:
-* **Transparency:** Complete visibility from supplier to the passenger's plate.
-* **Compliance:** Digital monitoring of FSSAI standards.
-* **Accountability:** Precise identification of responsible vendors/kitchens.
-* **Trust:** Improved passenger confidence via scannable QR verification.
+## 📋 1. Problem Statement
+Indian Railway Catering Services face persistent **food safety and hygiene complaints** due to the absence of a centralized digital traceability mechanism.
+
+### Key Challenges
+- **Manual Records:** Paper-based logs lead to data loss and human errors  
+- **Untracked Suppliers:** Ingredient origins cannot be traced once cooking begins  
+- **Delayed Resolution:** Passenger complaints cannot be mapped to specific food batches  
+
+
+---
+
+## 🎯 2. Project Objectives
+The Digital Food Traceability System aims to:
+
+- **Transparency:** Provide complete visibility of food origin and preparation  
+- **Compliance:** Digitally enforce FSSAI hygiene standards  
+- **Accountability:** Identify responsible suppliers, kitchens, and vendors  
+- **Trust:** Improve passenger confidence using scannable QR-based verification  
 
 ---
 
 ## ⚙️ 3. Proposed Solution Overview
-The system digitally tracks food across its entire lifecycle:
+The system digitally tracks food across its entire lifecycle.
 
-**Lifecycle Flow:**
-1. **Supplier:** Onboarded with verified FSSAI credentials.
-2. **Ingredient Batch:** Unique IDs generated for raw materials.
-3. **Kitchen:** Cooking time, temperature, and hygiene logs recorded.
-4. **Transport:** GPS and (optional) IoT sensor tracking.
-5. **Passenger:** QR code on the meal box provides full history.
+### Food Lifecycle Flow
+1. **Supplier Onboarding** – Verified using FSSAI license and hygiene certificates  
+2. **Ingredient Batching** – Unique batch IDs generated for raw materials  
+3. **Kitchen Processing** – Cooking time, temperature, and hygiene logs recorded  
+4. **Transportation** – GPS tracking with optional IoT sensor integration  
+5. **Passenger Access** – QR code on meal box reveals complete food history  
 
 ---
 
 ## 🧩 4. Key System Components
 
 ### 4.1 Supplier Management
-* **Verification:** Automated FSSAI license and hygiene certificate verification.
-* **Geo-tagging:** Location tracking of base kitchens and warehouses.
+- Automated **FSSAI verification**
+- **Geo-tagging** of kitchens and warehouses
+- Supplier hygiene compliance tracking
 
 ### 4.2 QR Code Traceability
-* **Dynamic QR Generation:** Attached to every food packet.
-* **Public Portal:** Passengers scan to see:
-    - Kitchen Name & Location
-    - Chef details & Cooking timestamp
-    - Origin of major ingredients (e.g., Rice, Flour)
+- **Dynamic QR codes** generated for every food packet
+- Public scan interface showing:
+  - Kitchen name and location  
+  - Cooking timestamp and chef details  
+  - Ingredient source information  
 
-### 4.3 Real-Time Dashboard
-* **Authority View:** Centralized monitoring for Railway Officials.
-* **Alert System:** Notifies if a batch exceeds expiry or fails a hygiene check.
+### 4.3 Real-Time Monitoring Dashboard
+- Centralized dashboard for railway authorities
+- Batch-level tracking and expiry monitoring
+- Automated alerts for hygiene or compliance violations
 
-### 4.4 Feedback & Compliance
-* **Integrated Complaints:** One-click feedback mapped to the exact meal batch.
-* **Performance Scores:** AI-driven vendor rankings based on audit results and feedback.
+### 4.4 Feedback & Compliance System
+- One-click passenger complaint registration
+- Complaints mapped directly to food batches
+- AI-based vendor performance scoring
 
 ---
 
 ## 💻 5. Technology Stack
 
 | Layer | Technology |
-| :--- | :--- |
+|------|-----------|
 | **Frontend** | Next.js 15 (App Router), TypeScript |
-| **UI/UX** | Tailwind CSS, Lucide Icons, Shadcn/UI |
-| **Backend** | Node.js / Next.js Server Actions |
-| **Database** | PostgreSQL (Prisma ORM) |
-| **DevOps** | GitHub Actions, AWS/Azure |
-| **Tools** | QR Code API, env-cmd (Environment Management) |
+| **UI / UX** | Tailwind CSS, Shadcn/UI, Lucide Icons |
+| **Backend** | Next.js API Routes & Server Actions |
+| **Database** | PostgreSQL with Prisma ORM |
+| **DevOps** | GitHub Actions, AWS / Azure |
+| **Utilities** | QR Code APIs, env-cmd |
 
 ---
 
-## 🏗️ 6. Project Structure (Next.js)
+## 🏗️ 6. Project Structure
 
 ```text
 supplysafe/
 ├── src/
-│   ├── app/                # Next.js Routes & Pages
-│   │   ├── (auth)/         # Login/Signup routes
-│   │   ├── dashboard/      # Admin & Supplier dashboards
-│   │   ├── scan/           # QR code scan results page
-│   │   └── layout.tsx      # Main layout
-│   ├── components/         # Reusable UI (Cards, Forms, Nav)
-│   ├── lib/                # Database (Prisma) & Shared Utils
-│   ├── services/           # API Logic & Third-party integrations
-│   └── types/              # TypeScript Interfaces
-├── public/                 # Static Assets & Icons
-├── .env.example            # Environment variables template
-├── package.json            # Scripts & Dependencies
-└── README.md               # Project Documentation
+│   ├── app/
+│   │   ├── (auth)/          # Authentication routes
+│   │   ├── dashboard/       # Admin & supplier dashboards
+│   │   ├── scan/            # QR scan result page
+│   │   ├── api/             # API route handlers
+│   │   └── layout.tsx       # Global layout
+│   ├── components/          # Reusable UI components
+│   ├── lib/                 # Prisma client & utilities
+│   ├── services/            # Business logic & integrations
+│   └── types/               # TypeScript types
+├── prisma/
+│   └── schema.prisma        # Database schema
+├── public/                  # Static assets
+├── .env.example             # Environment variables template
+├── package.json
+└── README.md
 
 ---
 
 ## 🧬 7. Prisma ORM Setup
 
-### Purpose
-Prisma is used as the ORM layer to:
-- Provide type-safe database queries
-- Keep the database schema versioned in code (`prisma/schema.prisma`)
-- Generate a typed client (`@prisma/client`) for use in the Next.js app
+### 🎯 Purpose
+Prisma is used as the **Object Relational Mapping (ORM)** layer to:
+- Provide **type-safe database queries**
+- Keep the **database schema versioned** in code (`prisma/schema.prisma`)
+- Generate a **typed Prisma Client** (`@prisma/client`) for use across the Next.js application
 
-### Setup Steps
-From the project root:
+---
+
+### ⚙️ Setup Steps
+From the **project root directory**, run:
+
 ```bash
 npm install
 npx prisma generate
-```
+
 
 ### Environment Variables
 Set `DATABASE_URL` in your local env file (for example `.env.development`):
@@ -174,3 +187,9 @@ Prisma improves:
 - Type safety: generated types for models and queries
 - Query reliability: safer query construction and validation
 - Productivity: faster iteration with schema-driven development
+
+## 👥 Team Information
+
+- **Madhav Garg**
+- **Sanya Jain**
+- **Nikunj Kohli**
