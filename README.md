@@ -188,6 +188,217 @@ Prisma improves:
 - Query reliability: safer query construction and validation
 - Productivity: faster iteration with schema-driven development
 
+---
+
+## 🔄 API Response Format
+
+FoodGuard implements a **Global API Response Handler** to ensure every API endpoint returns responses in a consistent, structured, and predictable format.
+
+### Why Standardized Responses?
+
+- ✅ **Consistency**: Every endpoint follows the same response structure
+- 🐛 **Better Debugging**: Error codes and timestamps make troubleshooting easier
+- 📊 **Observability**: Structured logs integrate seamlessly with monitoring tools
+- 👥 **Developer Experience**: Predictable responses simplify frontend development
+- 🔒 **Security**: Sensitive error details hidden in production
+
+---
+
+### Success Response
+
+```json
+{
+  "success": true,
+  "message": "Products fetched successfully",
+  "data": [
+    {
+      "id": "clx1234567890",
+      "name": "Organic Tomatoes",
+      "category": "Vegetables",
+      "price": 3.99,
+      "unit": "lb",
+      "inStock": true,
+      "supplier": {
+        "id": "clx0987654321",
+        "name": "Fresh Farms Ltd",
+        "verified": true
+      }
+    }
+  ],
+  "timestamp": "2026-01-21T10:30:00.000Z"
+}
+```
+
+### Error Response
+
+```json
+{
+  "success": false,
+  "message": "Product not found",
+  "error": {
+    "code": "E404_PRODUCT",
+    "details": "No product exists with ID: clx1234567890"
+  },
+  "timestamp": "2026-01-21T10:30:00.000Z"
+}
+```
+
+---
+
+### Response Structure
+
+| Field | Type | Description |
+|-------|------|-------------|
+| `success` | `boolean` | Indicates if the request was successful |
+| `message` | `string` | Human-readable message describing the result |
+| `data` | `any` | Response payload (only in success responses) |
+| `error` | `object` | Error details (only in error responses) |
+| `error.code` | `string` | Standardized error code for tracking and monitoring |
+| `error.details` | `any` | Additional error context (only in development mode) |
+| `timestamp` | `string` | ISO 8601 timestamp of when the response was generated |
+
+---
+
+### Error Codes Reference
+
+| Code | Description | HTTP Status |
+|------|-------------|-------------|
+| `E001` | Validation Error | 400 |
+| `E002` | Missing Required Field | 400 |
+| `E003` | Invalid Input | 400 |
+| `E004` | Invalid Email | 400 |
+| `E006` | Invalid Price | 400 |
+| `E007` | Invalid Quantity | 400 |
+| `E404` | Resource Not Found | 404 |
+| `E404_USER` | User Not Found | 404 |
+| `E404_PRODUCT` | Product Not Found | 404 |
+| `E404_ORDER` | Order Not Found | 404 |
+| `E404_SUPPLIER` | Supplier Not Found | 404 |
+| `E401` | Unauthorized | 401 |
+| `E403` | Forbidden | 403 |
+| `E403_SUPPLIER` | Supplier Not Verified | 403 |
+| `E409` | Duplicate Entry | 409 |
+| `E409_EMAIL` | Duplicate Email | 409 |
+| `E400_OUT_STOCK` | Product Out of Stock | 400 |
+| `E503` | Database Error | 503 |
+| `E500` | Internal Server Error | 500 |
+
+---
+
+### API Endpoints
+
+#### 👥 Users
+
+**GET** `/api/users`
+```typescript
+Response: { success: true, data: User[], message: "Successfully fetched N users" }
+```
+
+**POST** `/api/users`
+```typescript
+Request: { name, email, password, role? }
+Response: { success: true, data: User, message: "User created successfully" }
+```
+
+**GET** `/api/users/:id`
+```typescript
+Response: { success: true, data: User, message: "User fetched successfully" }
+```
+
+**PUT** `/api/users/:id`
+```typescript
+Request: { name?, email?, role? }
+Response: { success: true, data: User, message: "User updated successfully" }
+```
+
+**DELETE** `/api/users/:id`
+```typescript
+Response: { success: true, data: { id }, message: "User deleted successfully" }
+```
+
+#### 📦 Products
+
+**GET** `/api/products?category=Vegetables&inStock=true&supplierId=xxx`
+```typescript
+Response: { success: true, data: Product[], message: "Successfully fetched N products" }
+```
+
+**POST** `/api/products`
+```typescript
+Request: { name, description?, category?, price, unit, supplierId, inStock?, imageUrl? }
+Response: { success: true, data: Product, message: "Product created successfully" }
+```
+
+#### 🛒 Orders
+
+**GET** `/api/orders?userId=xxx&status=PENDING`
+```typescript
+Response: { success: true, data: Order[], message: "Successfully fetched N orders" }
+```
+
+**POST** `/api/orders`
+```typescript
+Request: { userId, items: [{ productId, quantity }], deliveryDate?, notes? }
+Response: { success: true, data: Order, message: "Order created successfully" }
+```
+
+#### 🏪 Suppliers
+
+**GET** `/api/suppliers?verified=true`
+```typescript
+Response: { success: true, data: Supplier[], message: "Successfully fetched N suppliers" }
+```
+
+**POST** `/api/suppliers`
+```typescript
+Request: { name, email, phone?, address?, description?, userId }
+Response: { success: true, data: Supplier, message: "Supplier created successfully" }
+```
+
+---
+
+### Usage Example
+
+```typescript
+import { sendSuccess, sendError } from "@/lib/responseHandler";
+import { ERROR_CODES } from "@/lib/errorCodes";
+
+export async function GET() {
+  try {
+    const data = await fetchData();
+    return sendSuccess(data, "Data fetched successfully");
+  } catch (error) {
+    return sendError(
+      "Failed to fetch data",
+      ERROR_CODES.DATABASE_ERROR,
+      500,
+      error
+    );
+  }
+}
+```
+
+---
+
+### Frontend Integration
+
+```typescript
+async function fetchProducts() {
+  const response = await fetch('/api/products');
+  const result = await response.json();
+  
+  if (result.success) {
+    console.log(result.data);
+    console.log(result.message);
+  } else {
+    console.error(result.error.code);
+    console.error(result.message);
+  }
+}
+```
+
+---
+
 ## 👥 Team Information
 
 - **Madhav Garg**

@@ -30,84 +30,135 @@ interface Activity {
 }
 
 async function getLiveMetrics() {
-  // Simulating real-time API call - fetched on EVERY REQUEST
-  // Using cache: 'no-store' ensures data is never cached
-  const response = await fetch(
-    "https://worldtimeapi.org/api/timezone/Etc/UTC",
-    {
-      cache: "no-store",
-    }
-  );
-
-  const timeData = await response.json();
   const timestamp = new Date().toISOString();
-  const requestTime = new Date(timeData.datetime).toLocaleTimeString();
+  const requestTime = new Date().toLocaleTimeString();
 
-  // Simulate real-time metrics
-  const activeUsers = Math.floor(Math.random() * 1000) + 500;
-  const alertsToday = Math.floor(Math.random() * 50) + 10;
-  const complianceScore = (95 + Math.random() * 5).toFixed(1);
+  try {
+    const baseUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3000";
 
-  return {
-    timestamp,
-    requestTime,
-    metrics: [
-      {
-        id: "users",
-        label: "Active Users",
-        value: activeUsers,
-        change: "+12.5%",
-        trend: "up" as const,
-      },
-      {
-        id: "alerts",
-        label: "Alerts Today",
-        value: alertsToday,
-        change: "-8.2%",
-        trend: "down" as const,
-      },
-      {
-        id: "compliance",
-        label: "Compliance Score",
-        value: `${complianceScore}%`,
-        change: "+2.1%",
-        trend: "up" as const,
-      },
-      {
-        id: "shipments",
-        label: "Active Shipments",
-        value: Math.floor(Math.random() * 200) + 100,
-        change: "+5.7%",
-        trend: "up" as const,
-      },
-    ] as Metric[],
-    recentActivity: [
-      {
-        id: 1,
-        action: "New shipment created",
-        timestamp: new Date(Date.now() - 5 * 60000).toLocaleTimeString(),
-        user: "John Doe",
-      },
-      {
-        id: 2,
-        action: "Temperature alert resolved",
-        timestamp: new Date(Date.now() - 15 * 60000).toLocaleTimeString(),
-        user: "Sarah Chen",
-      },
-      {
-        id: 3,
-        action: "Quality inspection passed",
-        timestamp: new Date(Date.now() - 30 * 60000).toLocaleTimeString(),
-        user: "Mike Rodriguez",
-      },
-      {
-        id: 4,
-        action: "Supplier verified",
-        timestamp: new Date(Date.now() - 45 * 60000).toLocaleTimeString(),
-        user: "Emily Watson",
-      },
-    ] as Activity[],
-  };
+    const [usersRes, productsRes, ordersRes, suppliersRes] = await Promise.all([
+      fetch(`${baseUrl}/api/users`, { cache: "no-store" }),
+      fetch(`${baseUrl}/api/products`, { cache: "no-store" }),
+      fetch(
+        `${baseUrl}/api/orders?userId=395dcbc2-0405-4758-9c3a-8208eaae3ba7`,
+        { cache: "no-store" }
+      ),
+      fetch(`${baseUrl}/api/suppliers?verified=true`, { cache: "no-store" }),
+    ]);
+
+    const users = await usersRes.json();
+    const products = await productsRes.json();
+    const orders = await ordersRes.json();
+    const suppliers = await suppliersRes.json();
+
+    const totalUsers = users.data?.length || 0;
+    const totalOrders = orders.data?.length || 0;
+    const totalSuppliers = suppliers.data?.length || 0;
+
+    interface Product {
+      inStock: boolean;
+    }
+
+    const inStockProducts =
+      products.data?.filter((p: Product) => p.inStock)?.length || 0;
+
+    return {
+      timestamp,
+      requestTime,
+      metrics: [
+        {
+          id: "users",
+          label: "Total Users",
+          value: totalUsers,
+          change: "+12.5%",
+          trend: "up" as const,
+        },
+        {
+          id: "products",
+          label: "Products Available",
+          value: inStockProducts,
+          change: "+8.2%",
+          trend: "up" as const,
+        },
+        {
+          id: "orders",
+          label: "Total Orders",
+          value: totalOrders,
+          change: "+15.3%",
+          trend: "up" as const,
+        },
+        {
+          id: "suppliers",
+          label: "Verified Suppliers",
+          value: totalSuppliers,
+          change: "+5.7%",
+          trend: "up" as const,
+        },
+      ] as Metric[],
+      recentActivity: [
+        {
+          id: 1,
+          action: "New order created",
+          timestamp: new Date(Date.now() - 5 * 60000).toLocaleTimeString(),
+          user: "John Restaurant Manager",
+        },
+        {
+          id: 2,
+          action: "Product added",
+          timestamp: new Date(Date.now() - 15 * 60000).toLocaleTimeString(),
+          user: "Fresh Farms Owner",
+        },
+        {
+          id: 3,
+          action: "Order confirmed",
+          timestamp: new Date(Date.now() - 30 * 60000).toLocaleTimeString(),
+          user: "Admin User",
+        },
+        {
+          id: 4,
+          action: "Supplier verified",
+          timestamp: new Date(Date.now() - 45 * 60000).toLocaleTimeString(),
+          user: "Admin User",
+        },
+      ] as Activity[],
+    };
+  } catch {
+    return {
+      timestamp,
+      requestTime,
+      metrics: [
+        {
+          id: "users",
+          label: "Total Users",
+          value: 0,
+          change: "0%",
+          trend: "up" as const,
+        },
+        {
+          id: "products",
+          label: "Products Available",
+          value: 0,
+          change: "0%",
+          trend: "up" as const,
+        },
+        {
+          id: "orders",
+          label: "Total Orders",
+          value: 0,
+          change: "0%",
+          trend: "up" as const,
+        },
+        {
+          id: "suppliers",
+          label: "Verified Suppliers",
+          value: 0,
+          change: "0%",
+          trend: "up" as const,
+        },
+      ] as Metric[],
+      recentActivity: [] as Activity[],
+    };
+  }
 }
 
 export default async function DashboardPage() {
