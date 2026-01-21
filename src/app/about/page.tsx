@@ -34,19 +34,19 @@ async function getStaticContent() {
     team: [
       {
         id: 1,
-        name: "Sarah Chen",
+        name: "Madhav Garg",
         role: "CEO & Founder",
         bio: "10+ years in food safety and supply chain management",
       },
       {
         id: 2,
-        name: "Michael Rodriguez",
+        name: "Sanya Jain",
         role: "CTO",
         bio: "Expert in blockchain and traceability systems",
       },
       {
         id: 3,
-        name: "Emily Watson",
+        name: "Nikunj Kohli",
         role: "Head of Operations",
         bio: "Specialist in compliance and quality assurance",
       },
