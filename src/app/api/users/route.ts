@@ -1,97 +1,44 @@
-import { sendSuccess, sendError } from "@/lib/responseHandler";
-import { ERROR_CODES } from "@/lib/errorCodes";
-import { PrismaClient } from "@prisma/client";
-import { PrismaPg } from "@prisma/adapter-pg";
-import pg from "pg";
-import * as bcrypt from "bcryptjs";
+import { NextResponse } from "next/server";
+import jwt from "jsonwebtoken";
+import { prisma } from "@/lib/prisma";
 
-const pool = new pg.Pool({ connectionString: process.env.DATABASE_URL });
-const adapter = new PrismaPg(pool);
-const prisma = new PrismaClient({ adapter });
+const JWT_SECRET = process.env.JWT_SECRET!;
 
-export async function GET() {
+export async function GET(req: Request) {
   try {
-    const users = await prisma.user.findMany({
-      select: {
-        id: true,
-        name: true,
-        email: true,
-        role: true,
-        createdAt: true,
-        updatedAt: true,
-      },
-    });
+    const authHeader = req.headers.get("authorization");
+    const token = authHeader?.split(" ")[1];
 
-    return sendSuccess(
-      users,
-      `Successfully fetched ${users.length} users`,
-      200
-    );
-  } catch (error) {
-    return sendError(
-      "Failed to fetch users",
-      ERROR_CODES.DATABASE_ERROR,
-      500,
-      error
-    );
-  }
-}
-
-export async function POST(req: Request) {
-  try {
-    const body = await req.json();
-    const { name, email, password, role = "USER" } = body;
-
-    if (!name || !email || !password) {
-      return sendError(
-        "Missing required fields: name, email, or password",
-        ERROR_CODES.MISSING_FIELD,
-        400
+    if (!token) {
+      return NextResponse.json(
+        { success: false, message: "Token missing" },
+        { status: 401 }
       );
     }
 
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    if (!emailRegex.test(email)) {
-      return sendError("Invalid email format", ERROR_CODES.INVALID_EMAIL, 400);
-    }
+    const decoded = jwt.verify(token, JWT_SECRET) as { id: string; email: string };
 
-    const existingUser = await prisma.user.findUnique({
-      where: { email },
+    const user = await prisma.user.findUnique({
+      where: { id: decoded.id },
+      select: { id: true, email: true, name: true, role: true, createdAt: true }
     });
 
-    if (existingUser) {
-      return sendError(
-        "User with this email already exists",
-        ERROR_CODES.DUPLICATE_EMAIL,
-        409
+    if (!user) {
+      return NextResponse.json(
+        { success: false, message: "User not found" },
+        { status: 404 }
       );
     }
 
-    const hashedPassword = await bcrypt.hash(password, 10);
-
-    const user = await prisma.user.create({
-      data: {
-        name,
-        email,
-        password: hashedPassword,
-        role,
-      },
-      select: {
-        id: true,
-        name: true,
-        email: true,
-        role: true,
-        createdAt: true,
-      },
+    return NextResponse.json({
+      success: true,
+      message: "Protected route accessed",
+      user,
     });
-
-    return sendSuccess(user, "User created successfully", 201);
   } catch (error) {
-    return sendError(
-      "Failed to create user",
-      ERROR_CODES.DATABASE_ERROR,
-      500,
-      error
+    return NextResponse.json(
+      { success: false, message: "Invalid or expired token" },
+      { status: 403 }
     );
   }
 }
