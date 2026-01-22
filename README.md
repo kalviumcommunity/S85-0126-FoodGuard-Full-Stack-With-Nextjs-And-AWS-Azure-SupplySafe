@@ -706,3 +706,131 @@ Visit `http://localhost:3000/test-auth` to interactively test all authorization 
 
 ---
 
+## 🛡️ Centralized Error Handling Middleware
+
+FoodGuard implements a **centralized error handling system** that ensures consistent error responses, structured logging, and secure error messages across all API routes.
+
+### Why Centralized Error Handling?
+
+Modern web applications can fail in many ways — from API timeouts to database connection issues. Without a centralized strategy:
+
+- ❌ Errors become scattered across routes
+- ❌ Logs are inconsistent and hard to parse
+- ❌ Debugging becomes difficult
+- ❌ Sensitive information may leak to users
+
+A centralized error handler ensures:
+
+- ✅ **Consistency**: Every error follows a uniform response format
+- ✅ **Security**: Sensitive stack traces are hidden in production
+- ✅ **Observability**: Structured logs make debugging and monitoring easier
+- ✅ **Developer Experience**: Clear error messages with context
+
+### Components
+
+#### 1. Structured Logger (`src/lib/logger.ts`)
+
+The logger provides consistent, JSON-formatted logs for easy parsing by log aggregation tools (CloudWatch, Datadog, etc.).
+
+```typescript
+import { logger } from "@/lib/logger";
+
+// Info logging
+logger.info("User created successfully", { userId: "123" }, "POST /api/users");
+
+// Error logging
+logger.error("Database connection failed", error, { query: "SELECT * FROM users" }, "GET /api/users");
+```
+
+**Log Output Format:**
+```json
+{
+  "level": "error",
+  "message": "Error in GET /api/users",
+  "timestamp": "2026-01-21T10:30:00.000Z",
+  "context": "GET /api/users",
+  "meta": {
+    "errorCode": "E503",
+    "statusCode": 503
+  },
+  "error": {
+    "name": "DatabaseError",
+    "message": "Connection timeout",
+    "stack": "DatabaseError: Connection timeout\n    at ..."
+  }
+}
+```
+
+#### 2. Error Handler (`src/lib/errorHandler.ts`)
+
+The centralized error handler categorizes errors, logs them with context, and returns appropriate responses.
+
+**Usage in API Routes:**
+
+```typescript
+import { handleError } from "@/lib/errorHandler";
+
+export async function GET(req: Request) {
+  try {
+    const data = await fetchData();
+    return sendSuccess(data, "Success");
+  } catch (error) {
+    return handleError(error, {
+      route: "/api/users",
+      method: "GET",
+      userId: req.headers.get("x-user-id") || undefined,
+    });
+  }
+}
+```
+
+### Environment-Aware Error Responses
+
+| Environment | Error Message | Stack Trace | Details |
+|-------------|---------------|-------------|---------|
+| **Development** | Full error message | ✅ Included | ✅ Full context |
+| **Production** | Safe, generic message | ❌ Hidden | ❌ Minimal details |
+
+**Development Response:**
+```json
+{
+  "success": false,
+  "message": "Database connection failed",
+  "error": {
+    "code": "E503",
+    "details": {
+      "stack": "DatabaseError: Connection timeout\n    at ..."
+    }
+  }
+}
+```
+
+**Production Response:**
+```json
+{
+  "success": false,
+  "message": "Something went wrong. Please try again later.",
+  "error": {
+    "code": "E500"
+  }
+}
+```
+
+**Note:** Full error details are **always logged** internally, even in production. Only the user-facing response is sanitized.
+
+### Reflection
+
+**How structured logs aid debugging:**
+- JSON format enables easy parsing and filtering
+- Context fields help trace errors to specific routes/operations
+- Timestamps enable correlation with other system events
+- Error codes enable automated alerting and monitoring
+
+**Why redacting sensitive data builds user trust:**
+- Prevents information leakage (database structure, file paths, etc.)
+- Protects against security vulnerabilities
+- Maintains professional appearance
+- Reduces attack surface
+
+---
+

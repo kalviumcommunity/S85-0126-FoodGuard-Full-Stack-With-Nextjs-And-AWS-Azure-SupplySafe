@@ -1,5 +1,6 @@
 import { sendSuccess, sendError } from "@/lib/responseHandler";
 import { ERROR_CODES } from "@/lib/errorCodes";
+import { handleError } from "@/lib/errorHandler";
 import { prisma } from "@/lib/prisma";
 
 /**
@@ -47,12 +48,11 @@ export async function GET(req: Request) {
 
     return sendSuccess(users, `Successfully fetched ${users.length} users`);
   } catch (error) {
-    return sendError(
-      "Failed to fetch users",
-      ERROR_CODES.DATABASE_ERROR,
-      500,
-      error
-    );
+    return handleError(error, {
+      route: "/api/users",
+      method: "GET",
+      userId: req.headers.get("x-user-id") || undefined,
+    });
   }
 }
 
@@ -116,11 +116,10 @@ export async function POST(req: Request) {
 
     return sendSuccess(user, "User created successfully", 201);
   } catch (error) {
-    return sendError(
-      "Failed to create user",
-      ERROR_CODES.DATABASE_ERROR,
-      500,
-      error
-    );
+    return handleError(error, {
+      route: "/api/users",
+      method: "POST",
+      userId: req.headers.get("x-user-id") || undefined,
+    });
   }
 }
