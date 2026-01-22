@@ -55,12 +55,23 @@ export async function GET(req: Request) {
 
 export async function POST(req: Request) {
   try {
-    const body = await req.json();
-    const { name, email, phone, address, description, userId } = body;
+    // Get authenticated user from middleware headers
+    const userId = req.headers.get("x-user-id");
 
-    if (!name || !email || !userId) {
+    if (!userId) {
       return sendError(
-        "Missing required fields: name, email, or userId",
+        "Authentication required",
+        ERROR_CODES.UNAUTHORIZED,
+        401
+      );
+    }
+
+    const body = await req.json();
+    const { name, email, phone, address, description } = body;
+
+    if (!name || !email) {
+      return sendError(
+        "Missing required fields: name or email",
         ERROR_CODES.MISSING_FIELD,
         400
       );
