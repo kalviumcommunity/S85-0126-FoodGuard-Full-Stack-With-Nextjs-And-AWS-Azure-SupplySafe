@@ -6,6 +6,7 @@ export async function GET() {
     version: "1.0.0",
     description: "Unified API for Food Supply Chain Management",
     documentation: "/api",
+
     endpoints: {
       users: {
         base: "/api/users",
@@ -44,6 +45,7 @@ export async function GET() {
           },
         },
       },
+
       products: {
         base: "/api/products",
         methods: {
@@ -70,6 +72,7 @@ export async function GET() {
           },
         },
       },
+
       orders: {
         base: "/api/orders",
         methods: {
@@ -92,6 +95,7 @@ export async function GET() {
           },
         },
       },
+
       suppliers: {
         base: "/api/suppliers",
         methods: {
@@ -114,7 +118,42 @@ export async function GET() {
           },
         },
       },
+
+      upload: {
+        base: "/api/upload",
+        methods: {
+          POST: {
+            description:
+              "Generate a signed upload URL for Supabase Storage (direct client upload)",
+            body: {
+              fileName: "string (required)",
+              fileType: "image/png | image/jpeg | application/pdf",
+              fileSize: "number (bytes)",
+            },
+            response: {
+              uploadURL: "signed URL (expires in short time)",
+              path: "storage file path",
+            },
+          },
+        },
+      },
+
+      files: {
+        base: "/api/files",
+        methods: {
+          POST: {
+            description: "Store uploaded file metadata in database",
+            body: {
+              name: "string",
+              path: "string",
+              size: "number",
+              mimeType: "string",
+            },
+          },
+        },
+      },
     },
+
     responseFormat: {
       success: {
         success: true,
@@ -132,6 +171,7 @@ export async function GET() {
         timestamp: "ISO 8601 timestamp",
       },
     },
+
     errorCodes: {
       E001: "Validation Error",
       E002: "Missing Required Field",

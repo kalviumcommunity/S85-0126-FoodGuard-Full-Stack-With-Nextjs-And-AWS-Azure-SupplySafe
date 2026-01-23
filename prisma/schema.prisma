@@ -1,9 +1,9 @@
-datasource db {
-  provider = "postgresql"
-}
-
 generator client {
   provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
 }
 
 model User {
@@ -52,9 +52,6 @@ model Product {
   orderItems  OrderItem[]
   supplier    Supplier    @relation(fields: [supplierId], references: [id], onDelete: Cascade)
 
-  // INDEXES for Optimization
-  @@index([category])
-  @@index([supplierId])
   @@map("products")
 }
 
@@ -71,9 +68,6 @@ model Order {
   orderItems   OrderItem[]
   user         User        @relation(fields: [userId], references: [id], onDelete: Cascade)
 
-  // INDEXES for Optimization
-  @@index([userId])
-  @@index([status])
   @@map("orders")
 }
 
@@ -103,4 +97,16 @@ enum OrderStatus {
   SHIPPED
   DELIVERED
   CANCELLED
+}
+
+
+model File {
+  id        String   @id @default(uuid())
+  name      String
+  path      String
+  size      Int
+  mimeType  String
+  createdAt DateTime @default(now())
+
+  @@map("files")
 }
