@@ -4,6 +4,7 @@ import { handleError } from "@/lib/errorHandler";
 import { PrismaClient } from "@prisma/client";
 import { PrismaPg } from "@prisma/adapter-pg";
 import pg from "pg";
+import redis from "@/lib/redis";
 
 const pool = new pg.Pool({ connectionString: process.env.DATABASE_URL });
 const adapter = new PrismaPg(pool);
@@ -16,6 +17,24 @@ export async function GET(req: Request) {
     const inStock = searchParams.get("inStock");
     const supplierId = searchParams.get("supplierId");
 
+    // Create cache key based on query parameters
+    const cacheKey = `products:${category || 'all'}:${inStock || 'all'}:${supplierId || 'all'}`;
+    
+    // Check cache first
+    const cachedData = await redis.get(cacheKey);
+    
+    if (cachedData) {
+      console.log("Cache Hit - Products");
+      const parsedData = JSON.parse(cachedData);
+      return sendSuccess(
+        parsedData,
+        `Successfully fetched ${parsedData.length} products (from cache)`,
+        200
+      );
+    }
+
+    console.log("Cache Miss - Fetching products from DB");
+    
     const where: Record<string, unknown> = {};
     if (category) where.category = category;
     if (inStock === "true") where.inStock = true;
@@ -37,6 +56,9 @@ export async function GET(req: Request) {
         createdAt: "desc",
       },
     });
+
+    // Cache data for 60 seconds (TTL)
+    await redis.set(cacheKey, JSON.stringify(products), "EX", 60);
 
     return sendSuccess(
       products,
@@ -122,6 +144,13 @@ export async function POST(req: Request) {
         },
       },
     });
+
+    // Invalidate all product-related caches after creating a new product
+    const keys = await redis.keys("products:*");
+    if (keys.length > 0) {
+      await redis.del(...keys);
+      console.log(`Invalidated ${keys.length} product cache keys`);
+    }
 
     return sendSuccess(product, "Product created successfully", 201);
   } catch (error) {

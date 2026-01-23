@@ -399,6 +399,7 @@ async function fetchProducts() {
 
 ---
 
+
 ## 🔐 Authorization Middleware (RBAC)
 
 FoodGuard implements **Role-Based Access Control (RBAC)** through authorization middleware that protects API routes based on user roles and validates JWT tokens.
@@ -833,4 +834,5 @@ export async function GET(req: Request) {
 - Reduces attack surface
 
 ---
+
 
