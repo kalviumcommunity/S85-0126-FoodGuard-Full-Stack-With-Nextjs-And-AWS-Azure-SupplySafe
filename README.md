@@ -399,97 +399,440 @@ async function fetchProducts() {
 
 ---
 
-## 🚀 Redis Caching Implementation
 
-### Overview
-The SupplySafe application implements Redis caching to improve API performance and reduce database load. Using the **cache-aside pattern**, frequently accessed data is stored in Redis with automatic TTL (Time-To-Live) policies.
+## 🔐 Authorization Middleware (RBAC)
 
-### Architecture
+FoodGuard implements **Role-Based Access Control (RBAC)** through authorization middleware that protects API routes based on user roles and validates JWT tokens.
+
+### Authentication vs Authorization
+
+| Concept | Description | Example |
+|---------|-------------|---------|
+| **Authentication** | Confirms who the user is | User logs in with valid credentials |
+| **Authorization** | Determines what actions they can perform | Only admins can delete users |
+
+### User Roles
+
+The system supports three user roles defined in the Prisma schema:
+
+```prisma
+enum Role {
+  USER      // Regular users - can access authenticated routes
+  SUPPLIER  // Supplier accounts - can manage their products
+  ADMIN     // Full access to all routes including admin dashboard
+}
 ```
-Client → Check Redis Cache → 
-  Hit → Return cached data (~10ms)
-  Miss → Query DB → Store in Cache → Return Response (~100ms)
+
+### Middleware Architecture
+
+```
+┌──────────────────────────────────────────────────────────────────┐
+│                        Incoming Request                          │
+└─────────────────────────────┬────────────────────────────────────┘
+                              │
+                              ▼
+┌──────────────────────────────────────────────────────────────────┐
+│                    Authorization Middleware                       │
+│  ┌────────────────────────────────────────────────────────────┐  │
+│  │  1. Check if route requires protection                     │  │
+│  │  2. Extract JWT from Authorization header                  │  │
+│  │  3. Verify token signature and expiration                  │  │
+│  │  4. Check user role against route requirements             │  │
+│  │  5. Pass user info to route handlers via headers           │  │
+│  └────────────────────────────────────────────────────────────┘  │
+└─────────────────────────────┬────────────────────────────────────┘
+                              │
+              ┌───────────────┼───────────────┐
+              │               │               │
+              ▼               ▼               ▼
+        ┌─────────┐    ┌───────────┐   ┌───────────┐
+        │   401   │    │    403    │   │    200    │
+        │ No Token│    │  Access   │   │  Success  │
+        │         │    │  Denied   │   │           │
+        └─────────┘    └───────────┘   └───────────┘
 ```
 
-### Cached Endpoints
+### Protected Routes
 
-#### Products API (`/api/products`)
-- **Cache Key Pattern:** `products:{category}:{inStock}:{supplierId}`
-- **TTL:** 60 seconds
-- **Invalidation:** Automatic on POST (create new product)
+| Route Pattern | Required Role | Description |
+|---------------|---------------|-------------|
+| `/api/admin/*` | ADMIN only | Admin dashboard and management |
+| `/api/users/*` | Any authenticated | User management |
+| `/api/products/*` | Any authenticated | Product CRUD operations |
+| `/api/orders/*` | Any authenticated | Order management |
+| `/api/suppliers/*` | Any authenticated | Supplier management |
+| `/api/auth/*` | Public | Authentication (login/register) |
+| `/api` | Public | API information |
+
+### JWT Token Structure
+
+The JWT token contains the following claims:
 
 ```typescript
-// Cache implementation example
-const cacheKey = `products:${category || 'all'}:${inStock || 'all'}:${supplierId || 'all'}`;
-const cachedData = await redis.get(cacheKey);
-
-if (cachedData) {
-  console.log("Cache Hit - Products");
-  return JSON.parse(cachedData);
+{
+  userId: string;    // User's unique ID
+  email: string;     // User's email address
+  role: string;      // USER | SUPPLIER | ADMIN
+  name: string;      // User's display name
+  iat: number;       // Issued at timestamp
+  exp: number;       // Expiration timestamp (24h)
 }
-
-console.log("Cache Miss - Fetching products from DB");
-const products = await prisma.product.findMany({...});
-await redis.set(cacheKey, JSON.stringify(products), "EX", 60);
 ```
 
-#### User API (`/api/users/[id]`)
-- **Cache Key Pattern:** `user:{id}`
-- **TTL:** 60 seconds
-- **Invalidation:** Automatic on PUT/DELETE operations
+### Authentication Endpoints
 
-### Performance Metrics
-
-| Request Type | Without Cache | With Cache | Improvement |
-|--------------|---------------|------------|-------------|
-| Products List | ~120ms | ~15ms | **87% faster** |
-| User Details | ~80ms | ~12ms | **85% faster** |
-
-### Cache Coherence Strategy
-
-1. **TTL-based Expiration:** Data automatically expires after 60 seconds
-2. **Write-through Invalidation:** Cache cleared immediately on data changes
-3. **Cache-aside Pattern:** Application manages cache logic
-
-### Environment Setup
-
-Add to `.env`:
-```env
-REDIS_URL=redis://localhost:6379
-```
-
-Install dependencies:
+#### Login
 ```bash
-npm install ioredis
+POST /api/auth/login
+Content-Type: application/json
+
+{
+  "email": "admin@foodguard.com",
+  "password": "password123"
+}
 ```
 
-### Testing Cache Performance
+**Response:**
+```json
+{
+  "success": true,
+  "message": "Login successful",
+  "data": {
+    "token": "eyJhbGciOiJIUzI1NiIs...",
+    "expiresIn": "24h",
+    "user": {
+      "id": "uuid",
+      "name": "Admin User",
+      "email": "admin@foodguard.com",
+      "role": "ADMIN"
+    }
+  }
+}
+```
 
-See `test-cache-performance.md` for detailed testing scripts and expected results.
+#### Register
+```bash
+POST /api/auth/register
+Content-Type: application/json
 
-### Cache Monitoring
+{
+  "name": "New User",
+  "email": "user@example.com",
+  "password": "securepassword",
+  "role": "USER"  // Optional, defaults to USER
+}
+```
 
-Monitor logs for:
-- `"Cache Hit"` - Data served from Redis
-- `"Cache Miss"` - Data fetched from database
-- `"Invalidated X cache keys"` - Cache cleared after updates
+#### Get Current User
+```bash
+GET /api/auth/me
+Authorization: Bearer <token>
+```
 
-### Stale Data Prevention
+### Testing Role-Based Access
 
-- **Immediate Invalidation:** Cache cleared on all write operations
-- **Short TTL:** 60-second expiration limits stale data risk
-- **Cache Keys:** Include query parameters to prevent cross-contamination
+#### Admin Access to Admin Route ✅
+```bash
+curl -X GET http://localhost:3000/api/admin \
+  -H "Authorization: Bearer <ADMIN_JWT>"
+```
+**Response:** `200 OK`
+```json
+{
+  "success": true,
+  "message": "Admin dashboard accessed successfully",
+  "data": {
+    "message": "Welcome Admin! You have full access.",
+    "statistics": { ... }
+  }
+}
+```
 
-### When Caching May Be Counterproductive
+#### Regular User Access to Admin Route ❌
+```bash
+curl -X GET http://localhost:3000/api/admin \
+  -H "Authorization: Bearer <USER_JWT>"
+```
+**Response:** `403 Forbidden`
+```json
+{
+  "success": false,
+  "message": "Access denied",
+  "error": {
+    "code": "E403",
+    "details": "Admin privileges required to access this resource"
+  }
+}
+```
 
-- **Highly Dynamic Data:** Frequently changing data (>1x/minute)
-- **Large Payloads:** >1MB responses consume significant Redis memory
-- **Low Traffic:** Endpoints with <10 requests/minute see minimal benefit
+#### No Token Access ❌
+```bash
+curl -X GET http://localhost:3000/api/users
+```
+**Response:** `401 Unauthorized`
+```json
+{
+  "success": false,
+  "message": "Token missing",
+  "error": {
+    "code": "E401",
+    "details": "Authorization header with Bearer token is required"
+  }
+}
+```
+
+#### Invalid Token ❌
+```bash
+curl -X GET http://localhost:3000/api/users \
+  -H "Authorization: Bearer invalid.token.here"
+```
+**Response:** `403 Forbidden`
+```json
+{
+  "success": false,
+  "message": "Invalid or expired token",
+  "error": {
+    "code": "E401_TOKEN"
+  }
+}
+```
+
+### Middleware Implementation
+
+The middleware is implemented in `src/middleware.ts`:
+
+```typescript
+import { NextResponse } from "next/server";
+import type { NextRequest } from "next/server";
+import * as jose from "jose";
+
+export async function middleware(req: NextRequest) {
+  const { pathname } = req.nextUrl;
+
+  // Check if route requires protection
+  const isAdminRoute = pathname.startsWith("/api/admin");
+  const isProtectedRoute = ["/api/users", "/api/orders"].some(
+    route => pathname.startsWith(route)
+  );
+
+  if (!isAdminRoute && !isProtectedRoute) {
+    return NextResponse.next();
+  }
+
+  // Extract and verify JWT
+  const token = req.headers.get("authorization")?.split(" ")[1];
+  
+  if (!token) {
+    return NextResponse.json({ 
+      success: false, 
+      message: "Token missing" 
+    }, { status: 401 });
+  }
+
+  // Verify token and check role
+  const decoded = await jose.jwtVerify(token, secret);
+  
+  if (isAdminRoute && decoded.payload.role !== "ADMIN") {
+    return NextResponse.json({ 
+      success: false, 
+      message: "Access denied" 
+    }, { status: 403 });
+  }
+
+  // Pass user info to route handlers
+  const requestHeaders = new Headers(req.headers);
+  requestHeaders.set("x-user-id", decoded.payload.userId);
+  requestHeaders.set("x-user-email", decoded.payload.email);
+  requestHeaders.set("x-user-role", decoded.payload.role);
+
+  return NextResponse.next({ request: { headers: requestHeaders } });
+}
+```
+
+### Principle of Least Privilege
+
+The middleware enforces the **principle of least privilege**:
+
+1. **Public routes** (`/api`, `/api/auth/*`) - No authentication required
+2. **Authenticated routes** (`/api/users/*`, `/api/products/*`) - Any valid token
+3. **Admin routes** (`/api/admin/*`) - Only ADMIN role tokens
+
+### Adding New Roles
+
+To add new roles (e.g., `EDITOR`, `MODERATOR`):
+
+1. **Update Prisma Schema:**
+```prisma
+enum Role {
+  USER
+  SUPPLIER
+  ADMIN
+  EDITOR      // New role
+  MODERATOR   // New role
+}
+```
+
+2. **Update Middleware:**
+```typescript
+// Add new role checks
+if (pathname.startsWith("/api/content") && 
+    !["ADMIN", "EDITOR"].includes(decoded.role)) {
+  return NextResponse.json({ 
+    success: false, 
+    message: "Editor access required" 
+  }, { status: 403 });
+}
+```
+
+3. **Run Migration:**
+```bash
+npx prisma migrate dev --name add_new_roles
+```
+
+### Interactive Testing
+
+Visit `http://localhost:3000/test-auth` to interactively test all authorization scenarios with a visual interface showing:
+- Test results with status codes
+- Success/failure indicators
+- Response payloads
+- Generated tokens for manual testing
+
+### Security Best Practices
+
+1. **JWT Secret**: Store in environment variables, minimum 32 characters
+2. **Token Expiration**: Set reasonable expiration (24h default)
+3. **HTTPS**: Always use HTTPS in production
+4. **Password Hashing**: Uses bcrypt with salt rounds
+5. **Error Messages**: Generic messages in production to prevent enumeration
 
 ---
 
-## 👥 Team Information
+## 🛡️ Centralized Error Handling Middleware
 
-- **Madhav Garg**
-- **Sanya Jain**
-- **Nikunj Kohli**
+FoodGuard implements a **centralized error handling system** that ensures consistent error responses, structured logging, and secure error messages across all API routes.
+
+### Why Centralized Error Handling?
+
+Modern web applications can fail in many ways — from API timeouts to database connection issues. Without a centralized strategy:
+
+- ❌ Errors become scattered across routes
+- ❌ Logs are inconsistent and hard to parse
+- ❌ Debugging becomes difficult
+- ❌ Sensitive information may leak to users
+
+A centralized error handler ensures:
+
+- ✅ **Consistency**: Every error follows a uniform response format
+- ✅ **Security**: Sensitive stack traces are hidden in production
+- ✅ **Observability**: Structured logs make debugging and monitoring easier
+- ✅ **Developer Experience**: Clear error messages with context
+
+### Components
+
+#### 1. Structured Logger (`src/lib/logger.ts`)
+
+The logger provides consistent, JSON-formatted logs for easy parsing by log aggregation tools (CloudWatch, Datadog, etc.).
+
+```typescript
+import { logger } from "@/lib/logger";
+
+// Info logging
+logger.info("User created successfully", { userId: "123" }, "POST /api/users");
+
+// Error logging
+logger.error("Database connection failed", error, { query: "SELECT * FROM users" }, "GET /api/users");
+```
+
+**Log Output Format:**
+```json
+{
+  "level": "error",
+  "message": "Error in GET /api/users",
+  "timestamp": "2026-01-21T10:30:00.000Z",
+  "context": "GET /api/users",
+  "meta": {
+    "errorCode": "E503",
+    "statusCode": 503
+  },
+  "error": {
+    "name": "DatabaseError",
+    "message": "Connection timeout",
+    "stack": "DatabaseError: Connection timeout\n    at ..."
+  }
+}
+```
+
+#### 2. Error Handler (`src/lib/errorHandler.ts`)
+
+The centralized error handler categorizes errors, logs them with context, and returns appropriate responses.
+
+**Usage in API Routes:**
+
+```typescript
+import { handleError } from "@/lib/errorHandler";
+
+export async function GET(req: Request) {
+  try {
+    const data = await fetchData();
+    return sendSuccess(data, "Success");
+  } catch (error) {
+    return handleError(error, {
+      route: "/api/users",
+      method: "GET",
+      userId: req.headers.get("x-user-id") || undefined,
+    });
+  }
+}
+```
+
+### Environment-Aware Error Responses
+
+| Environment | Error Message | Stack Trace | Details |
+|-------------|---------------|-------------|---------|
+| **Development** | Full error message | ✅ Included | ✅ Full context |
+| **Production** | Safe, generic message | ❌ Hidden | ❌ Minimal details |
+
+**Development Response:**
+```json
+{
+  "success": false,
+  "message": "Database connection failed",
+  "error": {
+    "code": "E503",
+    "details": {
+      "stack": "DatabaseError: Connection timeout\n    at ..."
+    }
+  }
+}
+```
+
+**Production Response:**
+```json
+{
+  "success": false,
+  "message": "Something went wrong. Please try again later.",
+  "error": {
+    "code": "E500"
+  }
+}
+```
+
+**Note:** Full error details are **always logged** internally, even in production. Only the user-facing response is sanitized.
+
+### Reflection
+
+**How structured logs aid debugging:**
+- JSON format enables easy parsing and filtering
+- Context fields help trace errors to specific routes/operations
+- Timestamps enable correlation with other system events
+- Error codes enable automated alerting and monitoring
+
+**Why redacting sensitive data builds user trust:**
+- Prevents information leakage (database structure, file paths, etc.)
+- Protects against security vulnerabilities
+- Maintains professional appearance
+- Reduces attack surface
+
+---
+
+
