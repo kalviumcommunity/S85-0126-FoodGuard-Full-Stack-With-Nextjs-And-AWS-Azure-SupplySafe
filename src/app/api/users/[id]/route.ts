@@ -3,20 +3,33 @@ import { ERROR_CODES } from "@/lib/errorCodes";
 import { PrismaClient } from "@prisma/client";
 import { PrismaPg } from "@prisma/adapter-pg";
 import pg from "pg";
+import redis from "@/lib/redis";
 
 const pool = new pg.Pool({ connectionString: process.env.DATABASE_URL });
 const adapter = new PrismaPg(pool);
 const prisma = new PrismaClient({ adapter });
 
 type Params = {
-  params: {
+  params: Promise<{
     id: string;
-  };
+  }>;
 };
 
 export async function GET(_: Request, { params }: Params) {
   try {
-    const { id } = params;
+    const { id } = await params;
+
+    // Check cache first
+    const cacheKey = `user:${id}`;
+    const cachedData = await redis.get(cacheKey);
+    
+    if (cachedData) {
+      console.log(`Cache Hit - User ${id}`);
+      const parsedData = JSON.parse(cachedData);
+      return sendSuccess(parsedData, "User fetched successfully (from cache)");
+    }
+
+    console.log(`Cache Miss - Fetching user ${id} from DB`);
 
     const user = await prisma.user.findUnique({
       where: { id },
@@ -24,15 +37,16 @@ export async function GET(_: Request, { params }: Params) {
         id: true,
         name: true,
         email: true,
-        role: true,
         createdAt: true,
-        updatedAt: true,
       },
     });
 
     if (!user) {
       return sendError("User not found", ERROR_CODES.USER_NOT_FOUND, 404);
     }
+
+    // Cache user data for 60 seconds (TTL)
+    await redis.set(cacheKey, JSON.stringify(user), "EX", 60);
 
     return sendSuccess(user, "User fetched successfully");
   } catch (error) {
@@ -47,7 +61,7 @@ export async function GET(_: Request, { params }: Params) {
 
 export async function PUT(req: Request, { params }: Params) {
   try {
-    const { id } = params;
+    const { id } = await params;
     const body = await req.json();
     const { name, email, role } = body;
 
@@ -93,10 +107,13 @@ export async function PUT(req: Request, { params }: Params) {
         id: true,
         name: true,
         email: true,
-        role: true,
-        updatedAt: true,
+        createdAt: true,
       },
     });
+
+    // Invalidate user cache after update
+    await redis.del(`user:${id}`);
+    console.log(`Invalidated cache for user ${id}`);
 
     return sendSuccess(updatedUser, "User updated successfully");
   } catch (error) {
@@ -111,7 +128,7 @@ export async function PUT(req: Request, { params }: Params) {
 
 export async function DELETE(_: Request, { params }: Params) {
   try {
-    const { id } = params;
+    const { id } = await params;
 
     const user = await prisma.user.findUnique({
       where: { id },
@@ -124,6 +141,10 @@ export async function DELETE(_: Request, { params }: Params) {
     await prisma.user.delete({
       where: { id },
     });
+
+    // Invalidate user cache after deletion
+    await redis.del(`user:${id}`);
+    console.log(`Invalidated cache for deleted user ${id}`);
 
     return sendSuccess({ id }, "User deleted successfully");
   } catch (error) {
