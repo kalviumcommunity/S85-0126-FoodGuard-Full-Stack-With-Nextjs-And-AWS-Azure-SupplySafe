@@ -54,8 +54,9 @@ export async function POST(req: Request) {
         email: true,
         name: true,
         password: true,
+        role: true,
+        createdAt: true,
       },
-
     });
 
     if (!user) {

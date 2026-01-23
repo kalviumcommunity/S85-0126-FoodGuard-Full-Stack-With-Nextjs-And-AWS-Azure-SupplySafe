@@ -24,19 +24,27 @@ export async function GET(req: Request) {
       );
     }
 
-    // Admin can see all users, others see limited info
+    // Admin can see all users (including emails & counts),
+    // non-admins see a limited view.
     const isAdmin = userRole === "ADMIN";
 
-
-    const user = await prisma.user.findUnique({
-      where: { id: decoded.id },
-      select: { 
-        id: true, 
-        email: true, 
-        name: true, 
-        createdAt: true
-      }
-
+    const users = await prisma.user.findMany({
+      select: {
+        id: true,
+        name: true,
+        email: isAdmin, // Only admins can see emails
+        role: true,
+        createdAt: true,
+        _count: isAdmin
+          ? {
+              select: {
+                orders: true,
+                suppliers: true,
+              },
+            }
+          : false,
+      },
+      orderBy: { createdAt: "desc" },
     });
 
     return sendSuccess(users, `Successfully fetched ${users.length} users`);

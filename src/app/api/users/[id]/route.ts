@@ -22,7 +22,7 @@ export async function GET(_: Request, { params }: Params) {
     // Check cache first
     const cacheKey = `user:${id}`;
     const cachedData = await redis.get(cacheKey);
-    
+
     if (cachedData) {
       console.log(`Cache Hit - User ${id}`);
       const parsedData = JSON.parse(cachedData);
