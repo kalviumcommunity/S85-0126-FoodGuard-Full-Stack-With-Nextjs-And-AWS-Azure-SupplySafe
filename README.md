@@ -103,6 +103,113 @@ supplysafe/
 ├── .env.example             # Environment variables template
 ├── package.json
 └── README.md
+```
+
+---
+
+## 🧭 Page Routing and Dynamic Routes (App Router)
+
+SupplySafe uses the **Next.js App Router** for file-based routing, with **public**, **protected**, and **dynamic** routes.
+
+### Route map
+
+| Route | Type | Auth | Description |
+|-------|------|------|-------------|
+| `/` | Public | — | Home |
+| `/login` | Public | — | Login (email/password); sets JWT in `token` cookie |
+| `/about` | Public | — | About (SSG) |
+| `/news` | Public | — | News (ISR) |
+| `/dashboard` | Protected | Cookie | Dashboard (SSR); requires valid `token` cookie |
+| `/users` | Protected | Cookie | Users list |
+| `/users/[id]` | Protected | Cookie | User profile (dynamic); breadcrumbs: Home › Users › *name* |
+| — | — | — | **404:** `app/not-found.tsx` |
+
+### Middleware (page protection)
+
+Protected **page** routes (`/dashboard`, `/users`, `/users/[id]`) use **cookie-based** JWT auth:
+
+- **Cookie:** `token` (JWT from `/api/auth/login`).
+- **No or invalid token** → redirect to `/login?from=<pathname>`.
+- **Valid token** → `NextResponse.next()`.
+
+Middleware runs on:
+
+```ts
+// config.matcher
+["/dashboard", "/dashboard/:path*", "/users", "/users/:path*", ...]
+```
+
+### Public pages
+
+- **`app/page.tsx`** — Home; links to About, Dashboard, News, API.
+- **`app/login/page.tsx`** — Client form; `POST /api/auth/login` → set `token` cookie → redirect to `from` or `/dashboard`.
+
+### Protected pages
+
+- **`app/dashboard/page.tsx`** — SSR dashboard; fetches `/api/users`, `/api/products`, etc. with `Cookie` forwarded.
+- **`app/users/page.tsx`** — Users list; fetches `/api/users` with `Cookie`.
+- **`app/users/[id]/page.tsx`** — Dynamic user profile; fetches `/api/users/:id`, uses `notFound()` if missing; breadcrumbs: **Home › Users › {name}**.
+
+### Dynamic routes
+
+- **`app/users/[id]/page.tsx`** — `params` is a `Promise<{ id: string }>` (Next.js 15+). Example: `/users/1`, `/users/<uuid>`.
+
+### Layout and navigation
+
+- **`app/layout.tsx`** — Global layout with nav: Home, Login, Dashboard, Users, User 1, About, News.
+
+### Custom 404
+
+- **`app/not-found.tsx`** — Custom 404 UI and “Back to Home” link.
+
+### Code snippets
+
+**Middleware (protected pages, cookie check):**
+
+```ts
+if (isProtectedPage(pathname)) {
+  const token = req.cookies.get("token")?.value;
+  if (!token) {
+    const loginUrl = new URL("/login", req.url);
+    loginUrl.searchParams.set("from", pathname);
+    return NextResponse.redirect(loginUrl);
+  }
+  try {
+    await verifyToken(token);
+    return NextResponse.next();
+  } catch {
+    return NextResponse.redirect(loginUrl);
+  }
+}
+```
+
+**Dynamic route (`app/users/[id]/page.tsx`):**
+
+```ts
+type Props = { params: Promise<{ id: string }> };
+
+export default async function UserProfilePage({ params }: Props) {
+  const { id } = await params;
+  const user = await getUser(id);  // fetch /api/users/:id with cookie
+  if (!user) notFound();
+  return (
+    <>
+      <nav aria-label="Breadcrumb">
+        <Link href="/">Home</Link> / <Link href="/users">Users</Link> / {user.name}
+      </nav>
+      <h1>User Profile</h1>
+      ...
+    </>
+  );
+}
+```
+
+### Reflection
+
+- **Dynamic routing and scalability:** `[id]` supports arbitrary user IDs (UUIDs or numeric) without new files; same component and data-fetch pattern.
+- **SEO:** Descriptive URLs (`/users/123`), breadcrumbs, and semantic markup improve crawlability and clarity.
+- **Breadcrumbs and UX:** Home › Users › *name* clarifies context and supports back-navigation.
+- **Error handling:** `notFound()` for missing users returns the custom 404; protected routes redirect to `/login` with `from` for post-login redirect.
 
 ---
 
