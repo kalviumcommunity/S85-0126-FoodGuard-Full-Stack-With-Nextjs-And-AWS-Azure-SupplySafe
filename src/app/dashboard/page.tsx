@@ -11,6 +11,8 @@
  * - No stale data
  */
 
+import { headers } from "next/headers";
+
 // Force dynamic rendering - page will be generated on every request
 export const dynamic = "force-dynamic";
 
@@ -29,21 +31,30 @@ interface Activity {
   user: string;
 }
 
-async function getLiveMetrics() {
+async function getLiveMetrics(cookie: string) {
   const timestamp = new Date().toISOString();
   const requestTime = new Date().toLocaleTimeString();
+  const baseUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3000";
+  const headersInit: HeadersInit = cookie ? { cookie } : {};
 
   try {
-    const baseUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3000";
-
     const [usersRes, productsRes, ordersRes, suppliersRes] = await Promise.all([
-      fetch(`${baseUrl}/api/users`, { cache: "no-store" }),
-      fetch(`${baseUrl}/api/products`, { cache: "no-store" }),
+      fetch(`${baseUrl}/api/users`, {
+        cache: "no-store",
+        headers: headersInit,
+      }),
+      fetch(`${baseUrl}/api/products`, {
+        cache: "no-store",
+        headers: headersInit,
+      }),
       fetch(
         `${baseUrl}/api/orders?userId=395dcbc2-0405-4758-9c3a-8208eaae3ba7`,
-        { cache: "no-store" }
+        { cache: "no-store", headers: headersInit }
       ),
-      fetch(`${baseUrl}/api/suppliers?verified=true`, { cache: "no-store" }),
+      fetch(`${baseUrl}/api/suppliers?verified=true`, {
+        cache: "no-store",
+        headers: headersInit,
+      }),
     ]);
 
     const users = await usersRes.json();
@@ -162,7 +173,8 @@ async function getLiveMetrics() {
 }
 
 export default async function DashboardPage() {
-  const data = await getLiveMetrics();
+  const h = await headers();
+  const data = await getLiveMetrics(h.get("cookie") ?? "");
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-purple-50 to-pink-100 p-8">
