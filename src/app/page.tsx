@@ -14,51 +14,10 @@ export default function Home() {
     >
       <div className="container mx-auto px-4 py-16">
         <div className="text-center mb-12">
-          <h1 className="text-4xl font-bold mb-4">SupplySafe</h1>
-          <p className="text-xl">Food Supply Chain Management System</p>
-        </div>
-
-        <div className="mb-8 text-center">
-          <h2 className="text-2xl font-semibold mb-4">Context & Hooks Demo</h2>
-
-          <div className="mb-6">
-            <h3 className="font-semibold mb-2">Auth State</h3>
-            {isAuthenticated ? (
-              <>
-                <p>Logged in as: {user}</p>
-                <button
-                  onClick={logout}
-                  className="bg-red-500 text-white px-3 py-1 rounded"
-                >
-                  Logout
-                </button>
-              </>
-            ) : (
-              <button
-                onClick={() => login("SupplySafeUser")}
-                className="bg-green-500 text-white px-3 py-1 rounded"
-              >
-                Login
-              </button>
-            )}
-          </div>
-
-          <div className="mb-6">
-            <h3 className="font-semibold mb-2">UI Controls</h3>
-            <p>Current Theme: {theme}</p>
-            <button
-              onClick={toggleTheme}
-              className="bg-blue-500 text-white px-3 py-1 rounded mr-3"
-            >
-              Toggle Theme
-            </button>
-            <button
-              onClick={toggleSidebar}
-              className="bg-yellow-500 text-black px-3 py-1 rounded"
-            >
-              {sidebarOpen ? "Close Sidebar" : "Open Sidebar"}
-            </button>
-          </div>
+          <h1 className="text-4xl font-bold text-gray-900 mb-4">SupplySafe</h1>
+          <p className="text-xl text-gray-600">
+            Food Supply Chain Management System
+          </p>
         </div>
 
         <TestContext />
@@ -88,8 +47,10 @@ export default function Home() {
             href="/dashboard"
             className={`${theme === "dark" ? "bg-gray-800 text-white hover:bg-gray-700" : "bg-white text-gray-800"} rounded-lg shadow-md p-6 hover:shadow-lg transition-shadow`}
           >
-            <h2 className="text-2xl font-semibold mb-2">Dashboard</h2>
-            <p className={theme === "dark" ? "text-gray-300" : "text-gray-600"}>
+            <h2 className="text-2xl font-semibold text-gray-800 mb-2">
+              Dashboard
+            </h2>
+            <p className="text-gray-600">
               View real-time metrics and analytics
             </p>
           </Link>

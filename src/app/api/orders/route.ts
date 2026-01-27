@@ -10,13 +10,19 @@ const prisma = new PrismaClient({ adapter });
 
 export async function GET(req: Request) {
   try {
-    const { searchParams } = new URL(req.url);
-    const userId = searchParams.get("userId");
-    const status = searchParams.get("status");
+    // Get authenticated user from middleware headers
+    const userId = req.headers.get("x-user-id");
 
     if (!userId) {
-      return sendError("User ID is required", ERROR_CODES.MISSING_FIELD, 400);
+      return sendError(
+        "Authentication required",
+        ERROR_CODES.UNAUTHORIZED,
+        401
+      );
     }
+
+    const { searchParams } = new URL(req.url);
+    const status = searchParams.get("status");
 
     const where: Record<string, unknown> = { userId };
     if (status) where.status = status;
@@ -64,12 +70,23 @@ export async function GET(req: Request) {
 
 export async function POST(req: Request) {
   try {
-    const body = await req.json();
-    const { userId, items, deliveryDate, notes } = body;
+    // Get authenticated user from middleware headers
+    const userId = req.headers.get("x-user-id");
 
-    if (!userId || !items || !Array.isArray(items) || items.length === 0) {
+    if (!userId) {
       return sendError(
-        "Missing required fields: userId or items array",
+        "Authentication required",
+        ERROR_CODES.UNAUTHORIZED,
+        401
+      );
+    }
+
+    const body = await req.json();
+    const { items, deliveryDate, notes } = body;
+
+    if (!items || !Array.isArray(items) || items.length === 0) {
+      return sendError(
+        "Missing required fields: items array",
         ERROR_CODES.MISSING_FIELD,
         400
       );
