@@ -14,13 +14,15 @@ const JWT_SECRET = process.env.JWT_SECRET || "supersecretkey";
 const JWT_EXPIRES_IN = "24h";
 
 /**
- * Login Endpoint
+ * Register Endpoint
  *
- * Authenticates user credentials and returns a JWT token for authorization.
+ * Creates a new user account and returns a JWT token for immediate access.
  *
  * Request Body:
+ * - name: string (required)
  * - email: string (required)
- * - password: string (required)
+ * - password: string (required, min 6 characters)
+ * - role: "USER" | "SUPPLIER" | "ADMIN" (optional, defaults to "USER")
  *
  * Response:
  * - token: JWT token containing user id, email, role, and name
@@ -29,12 +31,12 @@ const JWT_EXPIRES_IN = "24h";
 export async function POST(req: Request) {
   try {
     const body = await req.json();
-    const { email, password } = body;
+    const { name, email, password, role = "USER" } = body;
 
     // Validate required fields
-    if (!email || !password) {
+    if (!name || !email || !password) {
       return sendError(
-        "Missing required fields: email and password",
+        "Missing required fields: name, email, or password",
         ERROR_CODES.MISSING_FIELD,
         400
       );
@@ -46,37 +48,50 @@ export async function POST(req: Request) {
       return sendError("Invalid email format", ERROR_CODES.INVALID_EMAIL, 400);
     }
 
-    // Find user by email
-    const user = await prisma.user.findUnique({
-      where: { email },
-      select: {
-        id: true,
-        email: true,
-        name: true,
-        password: true,
-        role: true,
-        createdAt: true,
-      },
+    // Validate password length
+    if (password.length < 6) {
+      return sendError(
+        "Password must be at least 6 characters long",
+        ERROR_CODES.VALIDATION_ERROR,
+        400
+      );
+    }
+
+    // Validate role
+    const validRoles = ["USER", "SUPPLIER", "ADMIN"];
+    if (!validRoles.includes(role)) {
+      return sendError(
+        "Invalid role. Must be USER, SUPPLIER, or ADMIN",
+        ERROR_CODES.INVALID_INPUT,
+        400
+      );
+    }
+
+    // Check if user already exists
+    const existingUser = await prisma.user.findUnique({
+      where: { email: email.toLowerCase() },
     });
 
-    if (!user) {
+    if (existingUser) {
       return sendError(
-        "Invalid credentials",
-        ERROR_CODES.INVALID_CREDENTIALS,
-        401
+        "User with this email already exists",
+        ERROR_CODES.DUPLICATE_EMAIL,
+        409
       );
     }
 
-    // Verify password
-    const isPasswordValid = await bcrypt.compare(password, user.password);
+    // Hash password
+    const hashedPassword = await bcrypt.hash(password, 10);
 
-    if (!isPasswordValid) {
-      return sendError(
-        "Invalid credentials",
-        ERROR_CODES.INVALID_CREDENTIALS,
-        401
-      );
-    }
+    // Create user
+    const user = await prisma.user.create({
+      data: {
+        name,
+        email: email.toLowerCase(),
+        password: hashedPassword,
+        role,
+      },
+    });
 
     // Generate JWT token using jose (Edge-compatible)
     const secret = new TextEncoder().encode(JWT_SECRET);
@@ -104,9 +119,15 @@ export async function POST(req: Request) {
           createdAt: user.createdAt,
         },
       },
-      "Login successful"
+      "Registration successful",
+      201
     );
   } catch (error) {
-    return sendError("Login failed", ERROR_CODES.INTERNAL_ERROR, 500, error);
+    return sendError(
+      "Registration failed",
+      ERROR_CODES.INTERNAL_ERROR,
+      500,
+      error
+    );
   }
 }
