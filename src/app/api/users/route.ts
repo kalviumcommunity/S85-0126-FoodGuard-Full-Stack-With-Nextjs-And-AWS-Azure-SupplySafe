@@ -16,16 +16,19 @@ export async function GET(req: Request) {
       );
     }
 
-    const decoded = jwt.verify(token, JWT_SECRET) as { id: string; email: string };
+    const decoded = jwt.verify(token, JWT_SECRET) as {
+      id: string;
+      email: string;
+    };
 
     const user = await prisma.user.findUnique({
       where: { id: decoded.id },
-      select: { 
-        id: true, 
-        email: true, 
-        name: true, 
-        createdAt: true
-      }
+      select: {
+        id: true,
+        email: true,
+        name: true,
+        createdAt: true,
+      },
     });
 
     if (!user) {
@@ -40,7 +43,7 @@ export async function GET(req: Request) {
       message: "Protected route accessed",
       user,
     });
-  } catch (error) {
+  } catch {
     return NextResponse.json(
       { success: false, message: "Invalid or expired token" },
       { status: 403 }

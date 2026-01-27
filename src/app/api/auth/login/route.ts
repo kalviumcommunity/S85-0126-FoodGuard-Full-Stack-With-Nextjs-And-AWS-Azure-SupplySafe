@@ -26,10 +26,7 @@ export async function POST(req: Request) {
       );
     }
 
-    const validPassword = await bcrypt.compare(
-      password,
-      user.password
-    );
+    const validPassword = await bcrypt.compare(password, user.password);
 
     if (!validPassword) {
       return NextResponse.json(
@@ -48,7 +45,7 @@ export async function POST(req: Request) {
       success: true,
       message: "Login successful",
       token,
-      user: { id: user.id, email: user.email, name: user.name }
+      user: { id: user.id, email: user.email, name: user.name },
     });
   } catch {
     return NextResponse.json(

@@ -17,11 +17,11 @@ export async function GET(req: Request) {
     const supplierId = searchParams.get("supplierId");
 
     // Create cache key based on query parameters
-    const cacheKey = `products:${category || 'all'}:${inStock || 'all'}:${supplierId || 'all'}`;
-    
+    const cacheKey = `products:${category || "all"}:${inStock || "all"}:${supplierId || "all"}`;
+
     // Check cache first
     const cachedData = await redis.get(cacheKey);
-    
+
     if (cachedData) {
       console.log("Cache Hit - Products");
       const parsedData = JSON.parse(cachedData);
@@ -33,7 +33,7 @@ export async function GET(req: Request) {
     }
 
     console.log("Cache Miss - Fetching products from DB");
-    
+
     const where: Record<string, unknown> = {};
     if (category) where.category = category;
     if (inStock === "true") where.inStock = true;
