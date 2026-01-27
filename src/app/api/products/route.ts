@@ -1,5 +1,6 @@
 import { sendSuccess, sendError } from "@/lib/responseHandler";
 import { ERROR_CODES } from "@/lib/errorCodes";
+import { handleError } from "@/lib/errorHandler";
 import { PrismaClient } from "@prisma/client";
 import { PrismaPg } from "@prisma/adapter-pg";
 import pg from "pg";
@@ -65,12 +66,10 @@ export async function GET(req: Request) {
       200
     );
   } catch (error) {
-    return sendError(
-      "Failed to fetch products",
-      ERROR_CODES.DATABASE_ERROR,
-      500,
-      error
-    );
+    return handleError(error, {
+      route: "/api/products",
+      method: "GET",
+    });
   }
 }
 
@@ -155,11 +154,9 @@ export async function POST(req: Request) {
 
     return sendSuccess(product, "Product created successfully", 201);
   } catch (error) {
-    return sendError(
-      "Failed to create product",
-      ERROR_CODES.DATABASE_ERROR,
-      500,
-      error
-    );
+    return handleError(error, {
+      route: "/api/products",
+      method: "POST",
+    });
   }
 }
