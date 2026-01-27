@@ -1,92 +1,13 @@
-"use client"
+"use client";
 
-import Link from "next/link"
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { Badge } from '@/components/ui/badge'
-import { Button } from '@/components/ui/button'
-import { 
-  Package, 
-  ChefHat, 
-  Truck, 
-  Train, 
-  Users, 
-  Shield,
-  TrendingUp,
-  AlertTriangle,
-  BarChart3
-} from 'lucide-react'
-
-const metrics = [
-  {
-    title: "Active Food Batches",
-    value: "247",
-    description: "Currently monitored",
-    icon: Package,
-    trend: "+12%"
-  },
-  {
-    title: "Kitchens Live",
-    value: "18",
-    description: "Operating now",
-    icon: ChefHat,
-    trend: "+3%"
-  },
-  {
-    title: "Hygiene Score",
-    value: "84%",
-    description: "Average compliance",
-    icon: Shield,
-    trend: "+2%"
-  },
-  {
-    title: "Daily Passengers",
-    value: "45K",
-    description: "Meals served",
-    icon: Users,
-    trend: "+8%"
-  }
-]
-
-const features = [
-  {
-    title: "Real-time Tracking",
-    description: "Monitor food movement from supplier to passenger in real-time",
-    icon: Package,
-    href: "/traceability"
-  },
-  {
-    title: "Hygiene Monitoring",
-    description: "Comprehensive hygiene compliance tracking and reporting",
-    icon: Shield,
-    href: "/hygiene"
-  },
-  {
-    title: "Quality Assurance",
-    description: "Automated quality checks and temperature monitoring",
-    icon: TrendingUp,
-    href: "/dashboard"
-  },
-  {
-    title: "Alert Management",
-    description: "Instant notifications for violations and compliance issues",
-    icon: AlertTriangle,
-    href: "/alerts"
-  },
-  {
-    title: "Batch Management",
-    description: "Complete batch lifecycle management and documentation",
-    icon: BarChart3,
-    href: "/batches"
-  },
-  {
-    title: "Analytics Dashboard",
-    description: "Comprehensive analytics and operational insights",
-    icon: BarChart3,
-    href: "/dashboard"
-  }
-]
+import Link from "next/link";
+import { Button } from "@/components/ui/button";
+import TestContext from "@/test-context";
+import { useUI } from "@/hooks/useUI";
 
 export default function Home() {
+  const { theme } = useUI();
+
   return (
     <div
       className={`min-h-screen ${theme === "dark" ? "bg-gray-900 text-white" : "bg-gradient-to-br from-blue-50 to-indigo-100"}`}
@@ -98,7 +19,6 @@ export default function Home() {
             Food Supply Chain Management System
           </p>
         </div>
-      </div>
 
         <TestContext />
 
@@ -165,17 +85,24 @@ export default function Home() {
               Access the DFTS Dashboard
             </h2>
             <p className="text-gray-300 mb-8 max-w-2xl mx-auto">
-              Monitor real-time food safety, hygiene compliance, and traceability 
-              across the entire Indian Railway catering network.
+              Monitor real-time food safety, hygiene compliance, and
+              traceability across the entire Indian Railway catering network.
             </p>
             <div className="flex items-center justify-center space-x-4">
               <Link href="/dashboard">
-                <Button size="lg" className="bg-[#1E7F5C] hover:bg-[#1a6f4c] text-white">
+                <Button
+                  size="lg"
+                  className="bg-[#1E7F5C] hover:bg-[#1a6f4c] text-white"
+                >
                   Open Dashboard
                 </Button>
               </Link>
               <Link href="/traceability">
-                <Button size="lg" variant="outline" className="border-white text-white hover:bg-white hover:text-[#0F2A44]">
+                <Button
+                  size="lg"
+                  variant="outline"
+                  className="border-white text-white hover:bg-white hover:text-[#0F2A44]"
+                >
                   View Traceability
                 </Button>
               </Link>
@@ -184,5 +111,5 @@ export default function Home() {
         </div>
       </div>
     </div>
-  )
+  );
 }

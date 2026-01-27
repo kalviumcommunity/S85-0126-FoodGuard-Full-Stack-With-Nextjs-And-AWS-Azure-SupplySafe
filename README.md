@@ -1,8 +1,58 @@
 # 🚆 Digital Food Traceability System (DFTS)
 ### *Indian Railway Catering Services*
 
+[![Next.js](https://img.shields.io/badge/Next.js-16.1.2-black?logo=next.js)](https://nextjs.org/)
+[![TypeScript](https://img.shields.io/badge/TypeScript-5.x-blue?logo=typescript)](https://www.typescriptlang.org/)
+[![Tailwind CSS](https://img.shields.io/badge/Tailwind-3.x-38B2AC?logo=tailwind-css)](https://tailwindcss.com/)
+[![Prisma](https://img.shields.io/badge/Prisma-ORM-2D3748?logo=prisma)](https://www.prisma.io/)
+
+
 ---
 
+## 🚀 Quick Start
+
+```bash
+# Clone the repository
+git clone https://github.com/your-org/supplysafe.git
+cd supplysafe
+
+# Install dependencies
+npm install
+
+# Set up environment variables
+cp .env.example .env.local
+
+# Run database migrations
+npx prisma migrate dev
+
+# Seed the database (optional)
+npx prisma db seed
+
+# Start development server
+npm run dev
+```
+
+Open [http://localhost:3000](http://localhost:3000) in your browser.
+
+---
+
+## ✨ Features
+
+### Core Functionality
+- 🔐 **Authentication** - JWT-based auth with cookie sessions
+- 📊 **Real-time Dashboard** - Monitor food batches, hygiene scores, and alerts
+- 📦 **Batch Tracking** - End-to-end traceability from supplier to passenger
+- 📱 **QR Code Scanning** - Passengers can verify food origin instantly
+- 🔔 **Alert System** - Automated notifications for compliance violations
+
+### Technical Highlights
+- ⚡ **Server Components** - Leverages Next.js 16 App Router for optimal performance
+- 🎨 **Modern UI** - Built with Tailwind CSS, Shadcn/UI, and Lucide icons
+- 🗄️ **Type-safe Database** - Prisma ORM with PostgreSQL
+- 🔄 **Context Management** - React Context for auth and UI state
+- 📱 **Responsive Design** - Mobile-first approach for all screen sizes
+
+---
 
 ## 📌 Overview
 The **Digital Food Traceability System (DFTS)** is a full-stack web application designed to ensure **food safety, hygiene compliance, and accountability** across Indian Railway Catering Services.  
@@ -942,4 +992,63 @@ export async function GET(req: Request) {
 
 ---
 
+## 🔧 Environment Variables
 
+Create a `.env.local` file in the root directory:
+
+```env
+# Database
+DATABASE_URL="postgresql://user:password@localhost:5432/supplysafe"
+
+# Authentication
+JWT_SECRET="your-super-secret-jwt-key"
+
+# Redis (optional, for caching)
+REDIS_URL="redis://localhost:6379"
+
+# Supabase (optional)
+NEXT_PUBLIC_SUPABASE_URL="your-supabase-url"
+NEXT_PUBLIC_SUPABASE_ANON_KEY="your-supabase-anon-key"
+```
+
+---
+
+## 📜 Available Scripts
+
+| Command | Description |
+|---------|-------------|
+| `npm run dev` | Start development server with Turbopack |
+| `npm run build` | Build for production |
+| `npm run start` | Start production server |
+| `npm run lint` | Run ESLint |
+| `npx prisma studio` | Open Prisma database GUI |
+| `npx prisma migrate dev` | Run database migrations |
+| `npx prisma db seed` | Seed database with sample data |
+
+---
+
+## 🤝 Contributing
+
+1. Fork the repository
+2. Create your feature branch (`git checkout -b feature/amazing-feature`)
+3. Commit your changes (`git commit -m 'Add amazing feature'`)
+4. Push to the branch (`git push origin feature/amazing-feature`)
+5. Open a Pull Request
+
+---
+
+## 📄 License
+
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+
+---
+
+## 👥 Team
+
+**SupplySafe** is developed and maintained by the FoodGuard team.
+
+---
+
+<p align="center">
+  Made with ❤️ for Indian Railway Catering Services
+</p>
