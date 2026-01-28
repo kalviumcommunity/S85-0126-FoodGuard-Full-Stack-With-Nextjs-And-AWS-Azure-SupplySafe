@@ -17,7 +17,7 @@ import {
   Train
 } from 'lucide-react'
 
-export default function DashboardPage() {
+export default function DFTSDashboard() {
   return (
     <AppShell>
       <div className="space-y-6">

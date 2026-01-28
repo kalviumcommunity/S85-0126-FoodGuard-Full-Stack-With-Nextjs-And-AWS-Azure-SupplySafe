@@ -1,6 +1,5 @@
 "use client"
 
-import { useState } from 'react'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { cn } from '@/lib/utils'
@@ -29,8 +28,7 @@ const navigation = [
   { name: 'Settings', href: '/settings', icon: Settings },
 ]
 
-export function Sidebar() {
-  const [collapsed, setCollapsed] = useState(false)
+export function Sidebar({ collapsed, onToggle }: { collapsed: boolean; onToggle: (collapsed: boolean) => void }) {
   const pathname = usePathname()
 
   return (
@@ -52,7 +50,7 @@ export function Sidebar() {
             </div>
           )}
           <button
-            onClick={() => setCollapsed(!collapsed)}
+            onClick={() => onToggle(!collapsed)}
             className="text-gray-400 hover:text-white transition-colors"
           >
             {collapsed ? <Menu className="w-5 h-5" /> : <X className="w-5 h-5" />}

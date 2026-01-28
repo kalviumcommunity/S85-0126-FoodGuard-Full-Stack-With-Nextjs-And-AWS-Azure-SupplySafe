@@ -1,224 +1,436 @@
 "use client"
 
+import { useState } from 'react'
 import { AppShell } from '@/components/layout/app-shell'
-import { EnterpriseTable } from '@/components/tables/enterprise-table'
+import { Button } from '@/components/ui/button'
+import { Input } from '@/components/ui/input'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { Badge } from '@/components/ui/badge'
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
+import {
+  Package,
+  Search,
+  Filter,
+  Download,
+  Eye,
+  Edit,
+  Trash2,
+  Plus,
+  Calendar,
+  MapPin,
+  User,
+  Thermometer,
+  QrCode,
+  Shield,
+  AlertTriangle,
+  CheckCircle,
+  Clock,
+  Truck,
+  Train
+} from 'lucide-react'
 
-// Sample data for food batches
 const batchesData = [
   {
-    id: 'B7845',
-    name: 'Vegetable Pack - Mumbai Route',
-    supplier: 'Fresh Farms',
-    quantity: 250,
+    id: 'BATCH-7845',
+    supplier: 'Fresh Foods Ltd',
+    kitchen: 'Mumbai Central',
     status: 'in-transit',
-    departure: '2024-01-27 08:00',
-    arrival: '2024-01-27 18:00',
-    temperature: '4°C',
+    priority: 'high',
+    items: 245,
+    departure: '2024-01-27 08:00 AM',
+    arrival: '2024-01-27 04:30 PM',
+    route: 'Mumbai to Pune',
     hygieneScore: 92,
-    qrVerified: true
-  },
-  {
-    id: 'B7846',
-    name: 'Dairy Products - Pune Route',
-    supplier: 'Amul Dairy',
-    quantity: 180,
-    status: 'delivered',
-    departure: '2024-01-27 06:00',
-    arrival: '2024-01-27 14:00',
-    temperature: '2°C',
-    hygieneScore: 88,
-    qrVerified: true
-  },
-  {
-    id: 'B7847',
-    name: 'Bread & Bakery - Delhi Route',
-    supplier: 'Modern Bakery',
-    quantity: 320,
-    status: 'pending',
-    departure: '2024-01-27 16:00',
-    arrival: '2024-01-28 08:00',
-    temperature: '20°C',
-    hygieneScore: 95,
-    qrVerified: false
-  },
-  {
-    id: 'B7848',
-    name: 'Fresh Fruits - Chennai Route',
-    supplier: 'Tropical Farms',
-    quantity: 150,
-    status: 'critical',
-    departure: '2024-01-27 10:00',
-    arrival: '2024-01-27 20:00',
     temperature: '8°C',
-    hygieneScore: 68,
-    qrVerified: true
+    qrVerified: true,
+    responsible: 'Amit Singh',
+    trainNumber: '12123',
+    lastUpdated: '2 hours ago'
   },
   {
-    id: 'B7849',
-    name: 'Ready Meals - Kolkata Route',
-    supplier: 'Gourmet Kitchen',
-    quantity: 200,
+    id: 'BATCH-7844',
+    supplier: 'Green Valley Organics',
+    kitchen: 'Pune Regional',
+    status: 'delivered',
+    priority: 'medium',
+    items: 180,
+    departure: '2024-01-27 06:30 AM',
+    arrival: '2024-01-27 02:15 PM',
+    route: 'Pune to Nagpur',
+    hygieneScore: 88,
+    temperature: '12°C',
+    qrVerified: true,
+    responsible: 'Priya Sharma',
+    trainNumber: '12124',
+    lastUpdated: '4 hours ago'
+  },
+  {
+    id: 'BATCH-7843',
+    supplier: 'Metro Supplies',
+    kitchen: 'Nagpur Central',
     status: 'processing',
-    departure: '2024-01-27 12:00',
-    arrival: '2024-01-27 22:00',
-    temperature: '15°C',
+    priority: 'high',
+    items: 320,
+    departure: '2024-01-27 09:00 AM',
+    arrival: '2024-01-27 05:45 PM',
+    route: 'Nagpur to Delhi',
+    hygieneScore: 76,
+    temperature: '6°C',
+    qrVerified: false,
+    responsible: 'Raj Kumar',
+    trainNumber: '12125',
+    lastUpdated: '30 mins ago'
+  },
+  {
+    id: 'BATCH-7842',
+    supplier: 'Premium Foods Co',
+    kitchen: 'Delhi Main',
+    status: 'delivered',
+    priority: 'low',
+    items: 410,
+    departure: '2024-01-27 05:00 AM',
+    arrival: '2024-01-27 01:30 PM',
+    route: 'Delhi to Jaipur',
+    hygieneScore: 95,
+    temperature: '4°C',
+    qrVerified: true,
+    responsible: 'Suresh Kumar',
+    trainNumber: '12126',
+    lastUpdated: '6 hours ago'
+  },
+  {
+    id: 'BATCH-7841',
+    supplier: 'Quality Provisions',
+    kitchen: 'Chennai Central',
+    status: 'delayed',
+    priority: 'critical',
+    items: 195,
+    departure: '2024-01-27 07:30 AM',
+    arrival: '2024-01-27 03:00 PM',
+    route: 'Chennai to Bangalore',
+    hygieneScore: 68,
+    temperature: '10°C',
+    qrVerified: false,
+    responsible: 'Anita Desai',
+    trainNumber: '12127',
+    lastUpdated: '1 hour ago'
+  },
+  {
+    id: 'BATCH-7840',
+    supplier: 'Royal Catering',
+    kitchen: 'Kolkata Central',
+    status: 'scheduled',
+    priority: 'medium',
+    items: 275,
+    departure: '2024-01-27 11:00 AM',
+    arrival: '2024-01-27 07:00 PM',
+    route: 'Kolkata to Bhubaneswar',
     hygieneScore: 85,
-    qrVerified: true
-  }
-]
-
-const columns = [
-  {
-    key: 'id',
-    label: 'Batch ID',
-    sortable: true,
-    render: (value: string) => (
-      <span className="font-mono text-sm font-medium">{value}</span>
-    )
-  },
-  {
-    key: 'name',
-    label: 'Description',
-    sortable: true
-  },
-  {
-    key: 'supplier',
-    label: 'Supplier',
-    sortable: true
-  },
-  {
-    key: 'quantity',
-    label: 'Quantity',
-    sortable: true,
-    render: (value: number) => `${value} units`
-  },
-  {
-    key: 'status',
-    label: 'Status',
-    sortable: true
-  },
-  {
-    key: 'departure',
-    label: 'Departure',
-    sortable: true
-  },
-  {
-    key: 'arrival',
-    label: 'Arrival',
-    sortable: true
-  },
-  {
-    key: 'temperature',
-    label: 'Temperature',
-    sortable: true,
-    render: (value: string) => (
-      <span className={`font-medium ${
-        parseInt(value) <= 4 ? 'text-green-600' :
-        parseInt(value) <= 10 ? 'text-amber-600' :
-        'text-red-600'
-      }`}>{value}</span>
-    )
-  },
-  {
-    key: 'hygieneScore',
-    label: 'Hygiene Score',
-    sortable: true,
-    render: (value: number) => (
-      <span className={`font-medium ${
-        value >= 90 ? 'text-green-600' :
-        value >= 75 ? 'text-amber-600' :
-        'text-red-600'
-      }`}>{value}%</span>
-    )
-  },
-  {
-    key: 'qrVerified',
-    label: 'QR Status',
-    sortable: true,
-    render: (value: boolean) => (
-      <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${
-        value ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'
-      }`}>
-        {value ? 'Verified' : 'Failed'}
-      </span>
-    )
+    temperature: '7°C',
+    qrVerified: true,
+    responsible: 'Vikram Mehta',
+    trainNumber: '12128',
+    lastUpdated: '3 hours ago'
   }
 ]
 
 export default function BatchesPage() {
-  const handleView = (batch: any) => {
-    console.log('View batch:', batch)
-    // Navigate to batch details
+  const [searchTerm, setSearchTerm] = useState('')
+  const [selectedStatus, setSelectedStatus] = useState('all')
+  const [selectedPriority, setSelectedPriority] = useState('all')
+
+  const getStatusBadge = (status: string) => {
+    switch (status) {
+      case 'delivered':
+        return <Badge variant="compliant" className="text-xs">Delivered</Badge>
+      case 'in-transit':
+        return <Badge variant="pending" className="text-xs">In Transit</Badge>
+      case 'processing':
+        return <Badge variant="secondary" className="text-xs">Processing</Badge>
+      case 'delayed':
+        return <Badge variant="critical" className="text-xs">Delayed</Badge>
+      case 'scheduled':
+        return <Badge variant="outline" className="text-xs">Scheduled</Badge>
+      default:
+        return <Badge variant="default" className="text-xs">{status}</Badge>
+    }
   }
 
-  const handleEdit = (batch: any) => {
-    console.log('Edit batch:', batch)
-    // Open edit modal
+  const getPriorityBadge = (priority: string) => {
+    switch (priority) {
+      case 'critical':
+        return <Badge variant="critical" className="text-xs">Critical</Badge>
+      case 'high':
+        return <Badge variant="pending" className="text-xs">High</Badge>
+      case 'medium':
+        return <Badge variant="secondary" className="text-xs">Medium</Badge>
+      case 'low':
+        return <Badge variant="outline" className="text-xs">Low</Badge>
+      default:
+        return <Badge variant="default" className="text-xs">{priority}</Badge>
+    }
   }
 
-  const handleDelete = (batch: any) => {
-    console.log('Delete batch:', batch)
-    // Show delete confirmation
+  const getHygieneColor = (score: number) => {
+    if (score >= 90) return 'text-green-600'
+    if (score >= 80) return 'text-amber-600'
+    return 'text-red-600'
   }
+
+  const getTemperatureColor = (temp: string) => {
+    const tempNum = parseInt(temp)
+    if (tempNum <= 5) return 'text-blue-600'
+    if (tempNum <= 10) return 'text-green-600'
+    if (tempNum <= 15) return 'text-amber-600'
+    return 'text-red-600'
+  }
+
+  const filteredBatches = batchesData.filter(batch => {
+    const matchesSearch = batch.id.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                         batch.supplier.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                         batch.kitchen.toLowerCase().includes(searchTerm.toLowerCase())
+    const matchesStatus = selectedStatus === 'all' || batch.status === selectedStatus
+    const matchesPriority = selectedPriority === 'all' || batch.priority === selectedPriority
+    
+    return matchesSearch && matchesStatus && matchesPriority
+  })
 
   return (
     <AppShell>
       <div className="space-y-6">
         {/* Header */}
-        <Card>
-          <CardHeader>
-            <CardTitle className="text-xl font-semibold text-gray-900">
-              Food Batches Management
-            </CardTitle>
-          </CardHeader>
-        </Card>
+        <div className="flex items-center justify-between">
+          <div>
+            <h1 className="text-3xl font-bold text-gray-900">Food Batches</h1>
+            <p className="text-gray-600 mt-1">Manage and track food batches across the supply chain</p>
+          </div>
+          <Button>
+            <Plus className="w-4 h-4 mr-2" />
+            New Batch
+          </Button>
+        </div>
 
-        {/* Summary Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+        {/* Stats Cards */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
           <Card>
-            <CardContent className="p-4">
-              <div className="text-2xl font-bold text-gray-900">5</div>
-              <div className="text-sm text-gray-600">Total Batches</div>
+            <CardContent className="p-6">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm font-medium text-gray-600">Total Batches</p>
+                  <p className="text-2xl font-bold text-gray-900">1,247</p>
+                </div>
+                <Package className="w-8 h-8 text-blue-600" />
+              </div>
             </CardContent>
           </Card>
+          
           <Card>
-            <CardContent className="p-4">
-              <div className="text-2xl font-bold text-amber-600">1</div>
-              <div className="text-sm text-gray-600">In Transit</div>
+            <CardContent className="p-6">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm font-medium text-gray-600">In Transit</p>
+                  <p className="text-2xl font-bold text-gray-900">127</p>
+                </div>
+                <Truck className="w-8 h-8 text-amber-600" />
+              </div>
             </CardContent>
           </Card>
+          
           <Card>
-            <CardContent className="p-4">
-              <div className="text-2xl font-bold text-green-600">1</div>
-              <div className="text-sm text-gray-600">Delivered</div>
+            <CardContent className="p-6">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm font-medium text-gray-600">Delivered Today</p>
+                  <p className="text-2xl font-bold text-gray-900">89</p>
+                </div>
+                <CheckCircle className="w-8 h-8 text-green-600" />
+              </div>
             </CardContent>
           </Card>
+          
           <Card>
-            <CardContent className="p-4">
-              <div className="text-2xl font-bold text-red-600">1</div>
-              <div className="text-sm text-gray-600">Critical Issues</div>
+            <CardContent className="p-6">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm font-medium text-gray-600">Delayed</p>
+                  <p className="text-2xl font-bold text-gray-900">8</p>
+                </div>
+                <AlertTriangle className="w-8 h-8 text-red-600" />
+              </div>
             </CardContent>
           </Card>
         </div>
 
-        {/* Main Table */}
+        {/* Filters and Search */}
         <Card>
           <CardContent className="p-6">
-            <EnterpriseTable
-              data={batchesData}
-              columns={columns}
-              title="Active Food Batches"
-              searchable={true}
-              filterable={true}
-              paginated={true}
-              pageSize={10}
-              actions={{
-                view: handleView,
-                edit: handleEdit,
-                delete: handleDelete
-              }}
-            />
+            <div className="flex flex-col lg:flex-row gap-4">
+              <div className="flex-1">
+                <div className="relative">
+                  <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
+                  <Input
+                    placeholder="Search by batch ID, supplier, or kitchen..."
+                    value={searchTerm}
+                    onChange={(e) => setSearchTerm(e.target.value)}
+                    className="pl-10"
+                  />
+                </div>
+              </div>
+              
+              <div className="flex gap-2">
+                <select
+                  value={selectedStatus}
+                  onChange={(e) => setSelectedStatus(e.target.value)}
+                  className="px-3 py-2 border border-gray-300 rounded-md bg-white text-sm"
+                >
+                  <option value="all">All Status</option>
+                  <option value="delivered">Delivered</option>
+                  <option value="in-transit">In Transit</option>
+                  <option value="processing">Processing</option>
+                  <option value="delayed">Delayed</option>
+                  <option value="scheduled">Scheduled</option>
+                </select>
+                
+                <select
+                  value={selectedPriority}
+                  onChange={(e) => setSelectedPriority(e.target.value)}
+                  className="px-3 py-2 border border-gray-300 rounded-md bg-white text-sm"
+                >
+                  <option value="all">All Priority</option>
+                  <option value="critical">Critical</option>
+                  <option value="high">High</option>
+                  <option value="medium">Medium</option>
+                  <option value="low">Low</option>
+                </select>
+                
+                <Button variant="outline">
+                  <Filter className="w-4 h-4 mr-2" />
+                  More Filters
+                </Button>
+                
+                <Button variant="outline">
+                  <Download className="w-4 h-4 mr-2" />
+                  Export
+                </Button>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Batches Table */}
+        <Card>
+          <CardHeader>
+            <CardTitle>Active Batches ({filteredBatches.length})</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="overflow-x-auto">
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Batch ID</TableHead>
+                    <TableHead>Supplier</TableHead>
+                    <TableHead>Kitchen</TableHead>
+                    <TableHead>Status</TableHead>
+                    <TableHead>Priority</TableHead>
+                    <TableHead>Items</TableHead>
+                    <TableHead>Route</TableHead>
+                    <TableHead>Hygiene</TableHead>
+                    <TableHead>Temperature</TableHead>
+                    <TableHead>QR</TableHead>
+                    <TableHead>Responsible</TableHead>
+                    <TableHead>Train</TableHead>
+                    <TableHead className="text-right">Actions</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {filteredBatches.map((batch) => (
+                    <TableRow key={batch.id} className="hover:bg-gray-50">
+                      <TableCell className="font-medium">{batch.id}</TableCell>
+                      <TableCell className="text-sm text-gray-600">{batch.supplier}</TableCell>
+                      <TableCell className="text-sm text-gray-600">{batch.kitchen}</TableCell>
+                      <TableCell>{getStatusBadge(batch.status)}</TableCell>
+                      <TableCell>{getPriorityBadge(batch.priority)}</TableCell>
+                      <TableCell className="text-sm text-gray-900">{batch.items}</TableCell>
+                      <TableCell className="text-sm text-gray-600">{batch.route}</TableCell>
+                      <TableCell>
+                        <span className={`text-sm font-medium ${getHygieneColor(batch.hygieneScore)}`}>
+                          {batch.hygieneScore}%
+                        </span>
+                      </TableCell>
+                      <TableCell>
+                        <span className={`text-sm font-medium ${getTemperatureColor(batch.temperature)}`}>
+                          {batch.temperature}
+                        </span>
+                      </TableCell>
+                      <TableCell>
+                        {batch.qrVerified ? (
+                          <Badge variant="compliant" className="text-xs">✓</Badge>
+                        ) : (
+                          <Badge variant="critical" className="text-xs">✗</Badge>
+                        )}
+                      </TableCell>
+                      <TableCell className="text-sm text-gray-600">{batch.responsible}</TableCell>
+                      <TableCell className="text-sm text-gray-600">{batch.trainNumber}</TableCell>
+                      <TableCell className="text-right">
+                        <div className="flex items-center justify-end space-x-1">
+                          <Button variant="ghost" size="icon" className="h-8 w-8">
+                            <Eye className="w-4 h-4 text-gray-600" />
+                          </Button>
+                          <Button variant="ghost" size="icon" className="h-8 w-8">
+                            <Edit className="w-4 h-4 text-gray-600" />
+                          </Button>
+                          <Button variant="ghost" size="icon" className="h-8 w-8">
+                            <Trash2 className="w-4 h-4 text-red-600" />
+                          </Button>
+                        </div>
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </div>
+            
+            <div className="mt-4 pt-4 border-t border-gray-200">
+              <div className="flex items-center justify-between">
+                <span className="text-sm text-gray-600">
+                  Showing {filteredBatches.length} of {batchesData.length} batches
+                </span>
+                <div className="flex items-center space-x-2">
+                  <Button variant="outline" size="sm" disabled>Previous</Button>
+                  <Button variant="outline" size="sm">1</Button>
+                  <Button variant="outline" size="sm">2</Button>
+                  <Button variant="outline" size="sm">3</Button>
+                  <Button variant="outline" size="sm">Next</Button>
+                </div>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Quick Actions */}
+        <Card>
+          <CardHeader>
+            <CardTitle>Quick Actions</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+              <Button variant="outline" className="h-auto p-4 flex flex-col items-center space-y-2">
+                <Plus className="w-6 h-6" />
+                <span className="text-sm">Create New Batch</span>
+              </Button>
+              <Button variant="outline" className="h-auto p-4 flex flex-col items-center space-y-2">
+                <QrCode className="w-6 h-6" />
+                <span className="text-sm">Generate QR Codes</span>
+              </Button>
+              <Button variant="outline" className="h-auto p-4 flex flex-col items-center space-y-2">
+                <Download className="w-6 h-6" />
+                <span className="text-sm">Export Reports</span>
+              </Button>
+              <Button variant="outline" className="h-auto p-4 flex flex-col items-center space-y-2">
+                <Shield className="w-6 h-6" />
+                <span className="text-sm">Quality Check</span>
+              </Button>
+            </div>
           </CardContent>
         </Card>
       </div>
