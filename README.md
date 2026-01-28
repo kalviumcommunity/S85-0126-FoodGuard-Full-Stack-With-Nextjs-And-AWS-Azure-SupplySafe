@@ -44,6 +44,7 @@ Open [http://localhost:3000](http://localhost:3000) in your browser.
 - 📦 **Batch Tracking** - End-to-end traceability from supplier to passenger
 - 📱 **QR Code Scanning** - Passengers can verify food origin instantly
 - 🔔 **Alert System** - Automated notifications for compliance violations
+- 🎯 **Interactive Feedback UI** - Toasts, modals, and loaders for enhanced user experience
 
 ### Technical Highlights
 - ⚡ **Server Components** - Leverages Next.js 16 App Router for optimal performance
@@ -989,6 +990,154 @@ export async function GET(req: Request) {
 - Protects against security vulnerabilities
 - Maintains professional appearance
 - Reduces attack surface
+
+---
+
+## 🎯 Feedback UI Implementation
+
+This project includes comprehensive feedback UI components that enhance user experience through clear communication of system states and actions.
+
+### Overview
+
+The feedback system consists of three main patterns:
+- **Instant Feedback** - Toast notifications for quick user actions
+- **Blocking Feedback** - Modal dialogs for confirmations and important decisions
+- **Process Feedback** - Loading states for async operations
+
+### Components
+
+#### 1. Toast Notifications (`sonner`)
+- **Library**: [Sonner](https://sonner.emilkowal.ski/)
+- **Usage**: `toast.success()`, `toast.error()`, `toast.warning()`, `toast.loading()`
+- **Features**: Rich colors, auto-dismiss, action buttons, descriptions
+- **Accessibility**: ARIA live regions for screen readers
+
+```typescript
+import { toast } from 'sonner'
+
+const handleSave = async () => {
+  toast.loading('Saving...', { id: 'save' })
+  try {
+    await saveData()
+    toast.success('Data saved successfully!', { 
+      id: 'save',
+      description: 'Your changes have been saved.'
+    })
+  } catch (error) {
+    toast.error('Failed to save', { 
+      id: 'save',
+      description: 'Please try again.'
+    })
+  }
+}
+```
+
+#### 2. Modal Dialogs (`@/components/ui/modal`)
+- **Library**: Radix UI Dialog for accessibility
+- **Features**: Focus trapping, keyboard navigation, backdrop overlay
+- **Accessibility**: Semantic HTML markup, ARIA attributes
+
+```typescript
+import { Modal, ModalContent, ModalHeader, ModalTitle, ModalFooter } from '@/components/ui/modal'
+
+<Modal open={isOpen} onOpenChange={setIsOpen}>
+  <ModalContent>
+    <ModalHeader>
+      <ModalTitle>Confirm Action</ModalTitle>
+    </ModalHeader>
+    <ModalFooter>
+      <Button onClick={handleConfirm}>Confirm</Button>
+    </ModalFooter>
+  </ModalContent>
+</Modal>
+```
+
+#### 3. Loading States (`@/components/ui/loader`)
+- **Components**: `Spinner`, `ButtonLoader`, `LoadingOverlay`, `PageLoader`
+- **Features**: Multiple sizes, overlay support, button integration
+- **Accessibility**: `role="status"`, `aria-live="polite"`
+
+```typescript
+import { ButtonLoader, LoadingOverlay, Spinner } from '@/components/ui/loader'
+
+// Button with loading state
+<ButtonLoader isLoading={isSaving} onClick={handleSave}>
+  Save Data
+</ButtonLoader>
+
+// Overlay for sections
+<LoadingOverlay isLoading={isProcessing} message="Processing...">
+  <YourContent />
+</LoadingOverlay>
+```
+
+### Integration Examples
+
+#### Complaint Management System
+The latest complaints component demonstrates all three feedback patterns:
+
+1. **Toast Notifications**: 
+   - Success/error messages for assign and resolve actions
+   - Loading states during async operations
+   - Descriptive messages with context
+
+2. **Modal Dialogs**:
+   - Confirmation dialogs for critical actions
+   - Form validation before destructive operations
+
+3. **Loading States**:
+   - Button loaders during API calls
+   - Visual feedback for user actions
+
+### UX Principles Followed
+
+#### Non-Intrusive Design
+- Toasts appear in top-right corner, don't block content
+- Auto-dismiss after 4 seconds with manual close option
+- Multiple toasts stack vertically without overlapping
+
+#### Clear Information Hierarchy
+- **Success**: Green color, checkmark icon
+- **Error**: Red color, X icon, retry actions
+- **Warning**: Yellow color, alert icon
+- **Loading**: Blue spinner, descriptive text
+
+#### Accessibility Standards
+- **ARIA Labels**: All components have proper `role` attributes
+- **Keyboard Navigation**: Modals support ESC key, tab navigation
+- **Screen Reader Support**: Live regions announce state changes
+- **Focus Management**: Modals trap focus, return focus on close
+
+#### Consistent Design Language
+- Matches existing brand colors (`#0F2A44` primary)
+- Uses Tailwind CSS utility classes
+- Consistent spacing and typography
+- Smooth animations and transitions
+
+### Demo Page
+
+Visit `/feedback-demo` to see all components in action:
+- Interactive toast demonstrations
+- Modal dialog examples
+- Loading state variations
+- Combined user flows
+
+### Implementation Benefits
+
+1. **Improved User Trust**: Clear feedback reduces uncertainty
+2. **Better Error Handling**: Users understand what went wrong and how to fix it
+3. **Enhanced Accessibility**: Screen reader users get proper feedback
+4. **Professional Feel**: Smooth animations and consistent design
+5. **Reduced Support Tickets**: Clear error messages prevent confusion
+
+### Best Practices
+
+- **Always provide feedback** for user actions (even if successful)
+- **Use descriptive messages** that explain what happened and what to expect
+- **Include recovery options** in error messages (retry, contact support)
+- **Don't overuse modals** - reserve for important confirmations
+- **Keep loading states brief** but informative
+- **Test with screen readers** to ensure accessibility
 
 ---
 
