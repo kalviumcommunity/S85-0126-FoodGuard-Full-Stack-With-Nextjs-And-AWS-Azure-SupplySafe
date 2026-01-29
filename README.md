@@ -1348,6 +1348,7 @@ DATABASE_URL="postgresql://user:password@localhost:5432/supplysafe"
 
 # Authentication
 JWT_SECRET="your-super-secret-jwt-key"
+REFRESH_SECRET="your-super-secret-refresh-key"
 
 # Redis (optional, for caching)
 REDIS_URL="redis://localhost:6379"

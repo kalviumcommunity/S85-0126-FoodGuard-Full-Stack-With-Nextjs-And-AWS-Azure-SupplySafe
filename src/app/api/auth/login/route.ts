@@ -4,29 +4,31 @@ import { PrismaClient } from "@prisma/client";
 import { PrismaPg } from "@prisma/adapter-pg";
 import pg from "pg";
 import * as bcrypt from "bcryptjs";
-import * as jose from "jose";
+import { generateTokenPair } from "@/lib/jwt";
+import { setAuthCookies } from "@/lib/auth-cookies";
+import { NextRequest } from "next/server";
 
 const pool = new pg.Pool({ connectionString: process.env.DATABASE_URL });
 const adapter = new PrismaPg(pool);
 const prisma = new PrismaClient({ adapter });
 
-const JWT_SECRET = process.env.JWT_SECRET || "supersecretkey";
-const JWT_EXPIRES_IN = "24h";
-
 /**
- * Login Endpoint
+ * Login Endpoint with Access & Refresh Tokens
  *
- * Authenticates user credentials and returns a JWT token for authorization.
+ * Authenticates user credentials and returns JWT tokens for authorization.
+ * Uses secure HTTP-only cookies for token storage.
  *
  * Request Body:
  * - email: string (required)
  * - password: string (required)
  *
  * Response:
- * - token: JWT token containing user id, email, role, and name
+ * - accessToken: Short-lived JWT (15 minutes)
+ * - refreshToken: Long-lived JWT (7 days)
  * - user: User object (without password)
+ * - expiresIn: Token expiration time
  */
-export async function POST(req: Request) {
+export async function POST(req: NextRequest) {
   try {
     const body = await req.json();
     const { email, password } = body;
@@ -78,24 +80,17 @@ export async function POST(req: Request) {
       );
     }
 
-    // Generate JWT token using jose (Edge-compatible)
-    const secret = new TextEncoder().encode(JWT_SECRET);
-    const token = await new jose.SignJWT({
+    // Generate access and refresh tokens
+    const { accessToken, refreshToken, expiresIn } = await generateTokenPair({
       userId: user.id,
       email: user.email,
       role: user.role,
       name: user.name,
-    })
-      .setProtectedHeader({ alg: "HS256" })
-      .setIssuedAt()
-      .setExpirationTime(JWT_EXPIRES_IN)
-      .sign(secret);
+    });
 
-    // Return success response with token
-    return sendSuccess(
+    // Create response and set secure HTTP-only cookies
+    const response = sendSuccess(
       {
-        token,
-        expiresIn: JWT_EXPIRES_IN,
         user: {
           id: user.id,
           name: user.name,
@@ -103,9 +98,15 @@ export async function POST(req: Request) {
           role: user.role,
           createdAt: user.createdAt,
         },
+        expiresIn,
       },
       "Login successful"
     );
+
+    // Set secure cookies
+    setAuthCookies(response, accessToken, refreshToken);
+
+    return response;
   } catch (error) {
     return sendError("Login failed", ERROR_CODES.INTERNAL_ERROR, 500, error);
   }
