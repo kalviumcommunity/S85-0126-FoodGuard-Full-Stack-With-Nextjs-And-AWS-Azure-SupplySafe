@@ -1141,7 +1141,204 @@ Visit `/feedback-demo` to see all components in action:
 
 ---
 
-## 🔧 Environment Variables
+## � Error & Loading States
+
+This application implements comprehensive loading skeletons and error boundaries to provide a smooth user experience during data fetching and error scenarios.
+
+### Overview
+
+Instead of showing blank screens or sudden crashes, the app displays friendly fallback UIs that maintain user trust and ensure a resilient experience.
+
+### Implementation
+
+#### Loading Skeletons
+
+**Location**: `src/components/ui/skeleton.tsx`
+
+The skeleton components provide visual structure of what's loading, helping users predict content placement:
+
+- **`Skeleton`** - Basic animated placeholder
+- **`CardSkeleton`** - Skeleton for card components
+- **`MetricsCardSkeleton`** - Skeleton for dashboard metrics
+- **`TableSkeleton`** - Skeleton for data tables
+- **`DashboardSkeleton`** - Complete dashboard loading state
+- **`ComplaintsPageSkeleton`** - Complaints page loading state
+
+**Usage in Routes**:
+```typescript
+// app/dashboard/loading.tsx
+import { AppShell } from '@/components/layout/app-shell'
+import { DashboardSkeleton } from '@/components/ui/skeleton'
+
+export default function DashboardLoading() {
+  return (
+    <AppShell>
+      <DashboardSkeleton />
+    </AppShell>
+  )
+}
+```
+
+#### Error Boundaries
+
+**Location**: `src/components/ui/error-boundary.tsx`
+
+Error boundary components catch and handle errors gracefully:
+
+- **`ErrorBoundary`** - Full-page error handler with retry options
+- **`ErrorCard`** - Inline error component for specific sections
+- **`NetworkError`** - Network connection error handler
+- **`DataLoadError`** - Data loading error handler
+- **`NotFoundError`** - 404 page not found handler
+
+**Features**:
+- Automatic error logging in production
+- Development mode shows detailed error information
+- Retry functionality with `reset()` method
+- Navigation options (Go Back, Home)
+- User-friendly error messages
+
+**Usage in Routes**:
+```typescript
+// app/dashboard/error.tsx
+"use client"
+
+import { ErrorBoundary } from '@/components/ui/error-boundary'
+
+export default function DashboardError({
+  error,
+  reset,
+}: {
+  error: Error & { digest?: string }
+  reset: () => void
+}) {
+  return <ErrorBoundary error={error} reset={reset} />
+}
+```
+
+### Route Coverage
+
+Loading and error states are implemented for key routes:
+
+| Route | Loading State | Error Boundary |
+|-------|---------------|----------------|
+| `/dashboard` | ✅ DashboardSkeleton | ✅ ErrorBoundary |
+| `/complaints` | ✅ ComplaintsPageSkeleton | ✅ ErrorBoundary |
+| `/batches` | ✅ Custom skeleton | ✅ ErrorBoundary |
+| `/users` | ✅ Custom skeleton | ✅ ErrorBoundary |
+
+### Testing
+
+#### Demo Pages
+
+1. **Error & Loading Demo**: `/error-loading-demo`
+   - Interactive testing of all loading states
+   - Simulate different error scenarios
+   - Visual comparison of skeleton vs loaded content
+
+2. **Error Simulation**: `/simulate-error`
+   - Trigger component errors
+   - Test async operation failures
+   - Verify error boundary behavior
+
+#### Manual Testing
+
+**Loading States**:
+```bash
+# Use browser Network throttling
+1. Open DevTools → Network tab
+2. Select "Slow 3G" throttling
+3. Navigate between routes
+4. Observe skeleton loading states
+```
+
+**Error States**:
+```bash
+# Simulate network failures
+1. Disable network connection
+2. Navigate to any route
+3. Observe error boundary UI
+
+# Trigger component errors
+1. Visit /simulate-error
+2. Click "Trigger Component Error"
+3. Verify error boundary appears
+```
+
+#### Automated Testing
+
+```typescript
+// Example: Test loading state
+import { render, screen } from '@testing-library/react'
+import { DashboardSkeleton } from '@/components/ui/skeleton'
+
+test('shows loading skeleton', () => {
+  render(<DashboardSkeleton />)
+  expect(screen.getByTestId('loading-skeleton')).toBeInTheDocument()
+})
+
+// Example: Test error boundary
+import { render, screen } from '@testing-library/react'
+import { ErrorBoundary } from '@/components/ui/error-boundary'
+
+const ThrowError = () => {
+  throw new Error('Test error')
+}
+
+test('displays error boundary on error', () => {
+  render(
+    <ErrorBoundary error={new Error('Test error')} reset={() => {}} />
+  )
+  expect(screen.getByText(/something went wrong/i)).toBeInTheDocument()
+})
+```
+
+### UX Benefits
+
+#### Loading States
+- **Predictive Structure**: Users see content layout before it loads
+- **Reduced Perceived Load Time**: Skeletons make the app feel faster
+- **Consistent Experience**: No blank screens or jarring transitions
+- **Professional Feel**: Smooth animations and proper loading indicators
+
+#### Error States
+- **Graceful Degradation**: App continues to function despite errors
+- **User Guidance**: Clear instructions on how to recover
+- **Trust Building**: Transparent error handling builds confidence
+- **Reduced Support**: Users can self-recover from common issues
+
+### Best Practices
+
+#### Loading States
+- ✅ Use skeletons that match the actual content structure
+- ✅ Keep loading animations smooth and subtle
+- ✅ Show loading states for async operations
+- ✅ Provide estimated wait times when possible
+
+#### Error States
+- ✅ Always provide recovery options
+- ✅ Use user-friendly error messages
+- ✅ Log errors for debugging in production
+- ✅ Hide technical details from end users
+- ✅ Test error boundaries regularly
+
+### Performance Considerations
+
+- **Bundle Size**: Skeleton components are lightweight (~2KB)
+- **Animation Performance**: Uses CSS animations for smooth 60fps
+- **Memory Usage**: Error boundaries don't add significant overhead
+- **Network Impact**: No additional API calls for error handling
+
+### Accessibility
+
+- **Screen Readers**: Loading states announce "Loading" to screen readers
+- **Keyboard Navigation**: Error recovery buttons are keyboard accessible
+- **ARIA Labels**: Proper ARIA attributes on error elements
+- **Focus Management**: Error boundaries maintain focus context
+
+---
+
+## �🔧 Environment Variables
 
 Create a `.env.local` file in the root directory:
 
