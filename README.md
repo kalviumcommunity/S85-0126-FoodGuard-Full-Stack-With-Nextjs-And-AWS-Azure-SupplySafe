@@ -2003,4 +2003,58 @@ Our HSTS implementation ensures:
 
 This comprehensive security implementation ensures that the FoodGuard application remains secure against common web vulnerabilities while maintaining flexibility for legitimate use cases and third-party integrations.
 
+
+Object Storage Configuration: Secure File Uploads
+This module focuses on implementing cloud-based object storage for handling file uploads. Instead of storing large binary files in a traditional database, we utilize Supabase Storage (S3-compatible) to manage assets efficiently and securely.
+
+📁 Storage Setup & Configuration
+1. Cloud Infrastructure
+Provider: Supabase Storage (S3 Architecture)
+
+Bucket Name: uploads
+
+Access Level: Private. Anonymous public access is disabled to ensure data privacy.
+
+Folder Structure: Files are organized under the products/ directory using unique UUIDs to prevent filename collisions.
+
+2. Permissions & Security
+We use a Service Role Key on the server side to interact with Supabase. This ensures that:
+
+Credentials are never exposed to the frontend.
+
+Only our backend can request "Signed Upload URLs".
+
+🔐 Implementation: Presigned Upload Flow
+We implemented a Direct-to-Cloud upload pattern using Signed URLs. This reduces server load by allowing the client to upload directly to storage once authorized.
+
+Request: The client sends file metadata (name, type, size) to our /api/upload endpoint.
+
+Validation: The server validates the file against our security policies.
+
+Token Generation: The server generates a temporary, time-limited Signed Upload URL via Supabase.
+
+Direct Upload: The client uses that URL to perform a PUT request directly to the cloud storage bucket.
+
+🛡️ Validation & Security Reflections
+File Validation Logic
+To prevent storage abuse and security risks, we enforced the following rules in route.ts:
+
+Size Limit: Capped at 5MB to control storage costs and prevent Denial of Service (DoS) attempts.
+
+Type Restriction: Only image/png, image/jpeg, and image/webp are permitted to ensure only valid web assets are stored.
+
+Security Reflections
+Public vs. Private Access: By keeping the bucket private and using signed URLs, we ensure that files are only accessible to intended users. This prevents "scraping" of our storage bucket.
+
+Lifecycle Policies: For future improvement, we discussed implementing lifecycle rules to automatically delete temporary or unlinked files after 30 days, optimizing both cost and clutter.
+
+SQLi & XSS: While this module focuses on files, the metadata (filenames) is still sanitized to ensure that no malicious scripts are injected into our file-tracking database.
+
+📸 Proof of Implementation
+[Instruction for Student: Insert Screenshots Below]
+
+Terminal Log: Showing the successful generation of a Signed URL.
+
+Supabase Dashboard: A screenshot of your uploads/products/ folder showing a successfully uploaded file.
+
 ---
