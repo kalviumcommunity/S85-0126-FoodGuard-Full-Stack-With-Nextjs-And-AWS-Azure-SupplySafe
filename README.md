@@ -1631,7 +1631,316 @@ export async function POST(request: NextRequest) {
 
 ---
 
-## 🔒 Security Reflections
+## �️ Managed PostgreSQL Database Setup
+
+This section covers provisioning and configuring a managed PostgreSQL database using AWS RDS or Azure Database for PostgreSQL and connecting it securely to your Next.js application.
+
+### Why Use Managed Databases?
+
+Managed database services handle key operational tasks:
+- **Automated backups** - Point-in-time recovery and automated snapshots
+- **Patch management** - Automatic security updates and version upgrades
+- **Scaling and replication** - Easy vertical scaling and read replicas
+- **Network-level security** - VPC integration, firewall rules, and access control
+
+| Provider | Service Name | Key Advantage |
+|----------|-------------|---------------|
+| AWS | Amazon RDS (PostgreSQL engine) | Easy autoscaling and monitoring via CloudWatch |
+| Azure | Azure Database for PostgreSQL | Strong integration with Azure networking and IAM |
+
+---
+
+### 🚀 Provisioning Steps
+
+#### AWS RDS PostgreSQL
+
+1. **Create Database Instance**
+   ```
+   AWS Management Console → RDS → Databases → Create Database
+   ```
+
+2. **Configuration**
+   - Engine: PostgreSQL
+   - Template: Free tier or Dev/Test
+   - Settings:
+     - DB instance identifier: `supplysafe-db`
+     - Username: `admin`
+     - Password: Generate strong password
+   - Connectivity: Enable Public Access (for testing only)
+
+3. **Network Security**
+   - Go to Connectivity & Security → VPC Security Groups
+   - Add Inbound Rule:
+     - Type: PostgreSQL
+     - Port: 5432
+     - Source: My IP
+
+#### Azure Database for PostgreSQL
+
+1. **Create Database Server**
+   ```
+   Azure Portal → Create a resource → Databases → Azure Database for PostgreSQL
+   ```
+
+2. **Configuration**
+   - Server name: `supplysafe-db-server`
+   - Admin login: `adminuser`
+   - Compute tier: Basic/Free trial
+   - Networking: Allow public access from Azure services
+
+3. **Firewall Rules**
+   - Navigate to Networking → Firewall rules
+   - Add your client IP address
+
+---
+
+### 🔗 Connecting Your Next.js App
+
+#### 1. Update Environment Variables
+
+Copy the appropriate connection string to your `.env.local`:
+
+```bash
+# AWS RDS
+DATABASE_URL="postgresql://admin:YourStrongPassword@supplysafe-db.xxxxxxxx.us-east-1.rds.amazonaws.com:5432/supplysafe"
+
+# Azure PostgreSQL
+DATABASE_URL="postgresql://adminuser@supplysafe-db-server:YourStrongPassword@supplysafe-db-server.postgres.database.azure.com:5432/supplysafe?sslmode=require"
+```
+
+#### 2. Test Connection
+
+Use the built-in health check endpoint:
+
+```bash
+# Quick health check
+curl http://localhost:3000/api/database/health
+
+# Connection test
+curl -X POST http://localhost:3000/api/database/health
+```
+
+#### 3. Verify with Admin Client
+
+Connect using your preferred PostgreSQL client:
+
+```bash
+# Using psql
+psql -h your-db-endpoint -U admin -d supplysafe
+
+# Using pgAdmin or Azure Data Studio
+# Host: your-db-endpoint
+# Port: 5432
+# Database: supplysafe
+# Username: admin
+```
+
+---
+
+### 🔒 Security Best Practices
+
+#### Production Security
+
+1. **Disable Public Access**
+   - Use private endpoints or VPC peering
+   - Restrict access to application server IP only
+
+2. **SSL/TLS Encryption**
+   - Always use `sslmode=require` in production
+   - Azure enforces SSL by default
+
+3. **Network Security**
+   - Use security groups/firewall rules
+   - Implement IP allowlisting
+   - Consider VPN or private endpoints
+
+#### Credential Management
+
+```bash
+# Never hardcode credentials in source code
+# Always use environment variables
+# Use AWS Secrets Manager or Azure Key Vault for production
+
+# Example .env.local structure
+DATABASE_URL="postgresql://username:password@host:port/database"
+JWT_SECRET="your-jwt-secret"
+```
+
+---
+
+### 📊 Monitoring and Maintenance
+
+#### Backup Configuration
+
+**AWS RDS:**
+- Enable automated backups (7-day retention minimum)
+- Configure maintenance window
+- Set up cross-region backup replication
+
+**Azure PostgreSQL:**
+- Enable geo-redundant backups
+- Configure backup retention period
+- Set up point-in-time restore
+
+#### Health Monitoring
+
+The application includes built-in health monitoring:
+
+```typescript
+// Database health check endpoint
+GET /api/database/health
+// Returns: connection status, latency, server info
+
+// Connection test endpoint  
+POST /api/database/health
+// Returns: detailed connection test results
+```
+
+#### Performance Optimization
+
+1. **Connection Pooling**
+   - Prisma includes built-in connection pooling
+   - Configure pool size based on application load
+
+2. **Read Replicas**
+   - Set up read replicas for scaling read operations
+   - Configure application to route read queries appropriately
+
+3. **Monitoring**
+   - CloudWatch (AWS) or Azure Monitor
+   - Track CPU, memory, storage, and connection metrics
+
+---
+
+### 📋 Verification Checklist
+
+#### Post-Setup Verification
+
+- [ ] Database instance created and running
+- [ ] Network security configured (IP allowlisted)
+- [ ] Connection string updated in `.env.local`
+- [ ] Application connects successfully
+- [ ] Health check endpoint returns success
+- [ ] Admin client can connect remotely
+- [ ] Automated backups enabled
+- [ ] SSL/TLS encryption enforced
+
+#### Testing Commands
+
+```bash
+# Test database connection
+npm run db:migrate
+
+# Seed test data
+npm run db:seed
+
+# Verify application startup
+npm run dev
+
+# Check health endpoint
+curl http://localhost:3000/api/database/health
+```
+
+---
+
+### 💰 Cost Considerations
+
+#### AWS RDS Pricing
+
+| Instance | vCPU | Memory | Storage | Monthly (approx) |
+|----------|------|--------|---------|------------------|
+| db.t3.micro | 1 | 1 GB | 20 GB | Free Tier |
+| db.t3.small | 1 | 2 GB | 20 GB | ~$25 |
+| db.t3.medium | 2 | 4 GB | 100 GB | ~$50 |
+
+#### Azure PostgreSQL Pricing
+
+| Tier | vCPU | Memory | Storage | Monthly (approx) |
+|------|------|--------|---------|------------------|
+| Basic | 1 | 2 GB | 20 GB | Free Tier |
+| General Purpose | 2 | 8 GB | 100 GB | ~$45 |
+| Business Critical | 4 | 16 GB | 500 GB | ~$200 |
+
+---
+
+### 🔄 Migration Strategies
+
+#### From Local to Cloud
+
+1. **Export Local Data**
+   ```bash
+   pg_dump supplysafe > supplysafe-backup.sql
+   ```
+
+2. **Import to Cloud**
+   ```bash
+   psql -h cloud-host -U admin -d supplysafe < supplysafe-backup.sql
+   ```
+
+3. **Update Connection**
+   - Modify `.env.local` with new connection string
+   - Test application connectivity
+
+#### Zero-Downtime Migration
+
+1. Set up read replica
+2. Sync data to replica
+3. Promote replica to primary
+4. Update application connection
+5. Decommission old instance
+
+---
+
+### 🚨 Troubleshooting
+
+#### Common Issues
+
+**Connection Timeout**
+```bash
+# Check security group rules
+# Verify IP allowlisting
+# Test network connectivity
+```
+
+**SSL Certificate Errors**
+```bash
+# Ensure sslmode=require in connection string
+# Verify certificate chain
+# Check for firewall interference
+```
+
+**Performance Issues**
+```bash
+# Monitor connection pool usage
+# Check query performance
+# Review resource utilization
+```
+
+#### Debug Commands
+
+```bash
+# Test network connectivity
+telnet your-db-endpoint 5432
+
+# Check DNS resolution
+nslookup your-db-endpoint
+
+# Verify connection string
+psql "postgresql://user:pass@host:port/db"
+```
+
+---
+
+### 📚 Additional Resources
+
+- [AWS RDS Documentation](https://docs.aws.amazon.com/AmazonRDS/latest/UserGuide/)
+- [Azure PostgreSQL Documentation](https://docs.microsoft.com/azure/postgresql/)
+- [Prisma Connection Management](https://www.prisma.io/docs/concepts/components/prisma-client/connection-management)
+- [Next.js Environment Variables](https://nextjs.org/docs/basic-features/environment-variables)
+
+---
+
+## �🔒 Security Reflections
 
 ### Importance of HTTPS Enforcement
 HTTPS encryption is fundamental to modern web security. Without it:
