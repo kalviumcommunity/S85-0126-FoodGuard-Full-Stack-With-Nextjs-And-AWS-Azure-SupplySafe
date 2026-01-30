@@ -40,7 +40,8 @@ Open [http://localhost:3000](http://localhost:3000) in your browser.
 
 ### Core Functionality
 - 🔐 **Authentication** - JWT-based auth with cookie sessions
-- 📊 **Real-time Dashboard** - Monitor food batches, hygiene scores, and alerts
+- �️ **Security Headers** - HSTS, CSP, CORS, and comprehensive protection
+- � **Real-time Dashboard** - Monitor food batches, hygiene scores, and alerts
 - 📦 **Batch Tracking** - End-to-end traceability from supplier to passenger
 - 📱 **QR Code Scanning** - Passengers can verify food origin instantly
 - 🔔 **Alert System** - Automated notifications for compliance violations
@@ -1399,3 +1400,298 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 <p align="center">
   Made with ❤️ for Indian Railway Catering Services
 </p>
+
+---
+
+## 🛡️ Security Implementation
+
+### Overview
+This application implements enterprise-grade security measures to protect against common web vulnerabilities and ensure secure communication between clients and servers.
+
+### Security Headers Configuration
+
+#### HTTP Strict Transport Security (HSTS)
+```typescript
+'Strict-Transport-Security': 'max-age=63072000; includeSubDomains; preload'
+```
+- **Purpose**: Forces browsers to use HTTPS only
+- **Protection**: Prevents man-in-the-middle (MITM) attacks
+- **Duration**: 2 years with subdomain coverage
+- **Preload**: Eligible for browser HSTS preload list
+
+#### Content Security Policy (CSP)
+```typescript
+'Content-Security-Policy': [
+  "default-src 'self'",
+  "script-src 'self' 'unsafe-eval' 'unsafe-inline' https://apis.google.com https://www.googletagmanager.com",
+  "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
+  "img-src 'self' data: https: blob:",
+  "font-src 'self' https://fonts.gstatic.com",
+  "connect-src 'self' https://api.github.com https://*.amazonaws.com https://*.azure.com",
+  "media-src 'self'",
+  "object-src 'none'",
+  "base-uri 'self'",
+  "form-action 'self'",
+  "frame-ancestors 'none'",
+  "upgrade-insecure-requests"
+].join('; ')
+```
+- **Purpose**: Restricts content sources to prevent XSS attacks
+- **Key Directives**:
+  - `default-src 'self'`: Default policy for all content types
+  - `script-src`: Allows scripts from trusted domains only
+  - `connect-src`: Restricts API endpoints to trusted services
+  - `object-src 'none'`: Prevents plugin content (prevents many attacks)
+  - `frame-ancestors 'none'`: Prevents clickjacking
+
+#### Cross-Origin Resource Sharing (CORS)
+```typescript
+// API Routes Configuration
+{
+  'Access-Control-Allow-Origin': 'https://your-production-domain.com', // Production
+  'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, PATCH, OPTIONS',
+  'Access-Control-Allow-Headers': 'Content-Type, Authorization, X-Requested-With, Accept, Origin',
+  'Access-Control-Allow-Credentials': 'true',
+  'Access-Control-Max-Age': '86400' // 24 hours
+}
+```
+- **Purpose**: Controls which domains can access your API
+- **Security**: Never uses `*` in production
+- **Methods**: Restricts to necessary HTTP methods only
+- **Credentials**: Allows secure cookie transmission
+
+#### Additional Security Headers
+```typescript
+{
+  'X-Frame-Options': 'DENY',                    // Clickjacking protection
+  'X-Content-Type-Options': 'nosniff',          // MIME sniffing protection
+  'Referrer-Policy': 'strict-origin-when-cross-origin', // Referrer control
+  'Permissions-Policy': [
+    'camera=()', 'microphone=()', 'geolocation=()',
+    'payment=()', 'usb=()', 'magnetometer=()',
+    'gyroscope=()', 'accelerometer=()',
+    'ambient-light-sensor=()', 'autoplay=(self)',
+    'encrypted-media=(self)', 'fullscreen=(self)',
+    'picture-in-picture=(self)'
+  ].join(', ')
+}
+```
+
+### HTTPS Enforcement
+
+#### Automatic HTTPS Redirect
+```typescript
+// next.config.ts - HTTP to HTTPS redirect
+{
+  source: '/((?!api/).*)',
+  has: [{ type: 'header', key: 'x-forwarded-proto', value: 'http' }],
+  destination: 'https://your-domain.com/:splat',
+  permanent: true,
+}
+```
+
+#### Environment-Specific Configuration
+- **Development**: Allows HTTP for local testing
+- **Production**: Enforces HTTPS with HSTS
+- **Staging**: Mirrors production security settings
+
+### Security Testing
+
+#### Security Headers Test Page
+Visit `/security-test` to verify:
+- ✅ HSTS configuration
+- ✅ CSP policy effectiveness
+- ✅ CORS implementation
+- ✅ Additional security headers
+- ✅ HTTPS enforcement
+
+#### Testing Commands
+```bash
+# Test security headers locally
+curl -I http://localhost:3000
+
+# Test CORS with different origins
+curl -H "Origin: https://malicious-site.com" \
+     -H "Access-Control-Request-Method: POST" \
+     -H "Access-Control-Request-Headers: X-Requested-With" \
+     -X OPTIONS http://localhost:3000/api/auth/login
+```
+
+### Security Best Practices Implemented
+
+#### 1. **Defense in Depth**
+- Multiple layers of security headers
+- CORS validation at API level
+- Input validation and sanitization
+- Secure cookie configuration
+
+#### 2. **Zero Trust Architecture**
+- All origins explicitly validated
+- No wildcard (`*`) CORS policies in production
+- Strict CSP with minimal trusted sources
+- Feature permissions explicitly disabled
+
+#### 3. **Secure by Default**
+- Security headers applied to all routes
+- HTTPS enforced in production
+- Secure cookie flags (HttpOnly, SameSite, Secure)
+- No sensitive data in client-side storage
+
+### Security Monitoring
+
+#### Header Inspection
+```bash
+# Check security headers in browser
+# Chrome DevTools → Network → Response Headers
+```
+
+#### Online Security Scanners
+- [securityheaders.com](https://securityheaders.com) - Comprehensive header analysis
+- [Mozilla Observatory](https://observatory.mozilla.org) - Security scoring
+- [SSL Labs](https://www.ssllabs.com/ssltest/) - SSL/TLS configuration testing
+
+### Configuration Files
+
+#### Next.js Configuration (`next.config.ts`)
+```typescript
+const nextConfig: NextConfig = {
+  async headers() {
+    return [
+      {
+        source: '/(.*)',
+        headers: [
+          // HSTS, CSP, and other security headers
+          // See full configuration in next.config.ts
+        ],
+      },
+      {
+        source: '/api/(.*)',
+        headers: [
+          // API-specific CORS headers
+        ],
+      },
+    ];
+  },
+};
+```
+
+#### Security Utilities (`src/lib/security.ts`)
+```typescript
+import { addCorsHeaders, handleCorsPreflight, validateOrigin } from '@/lib/security';
+
+// Usage in API routes
+export async function POST(request: NextRequest) {
+  const preflightResponse = handleCorsPreflight(request);
+  if (preflightResponse) return preflightResponse;
+
+  if (!validateOrigin(request)) {
+    return NextResponse.json(
+      { success: false, message: 'Origin not allowed' },
+      { status: 403 }
+    );
+  }
+
+  // Your API logic here
+  const response = NextResponse.json({ success: true });
+  return addCorsHeaders(response, request.headers.get('origin'));
+}
+```
+
+### Security Considerations
+
+#### Third-Party Integrations
+- **Google Services**: Whitelisted in CSP for analytics and fonts
+- **Cloud Services**: AWS and Azure endpoints explicitly allowed
+- **CDN**: Static assets served with proper cache headers
+
+#### Performance Impact
+- **Minimal Overhead**: Security headers are lightweight
+- **Caching**: Static assets cached for 1 year
+- **Compression**: Enabled in production
+- **HTTP/2**: Supported for improved performance
+
+#### Compliance
+- **GDPR**: No unnecessary data collection
+- **Accessibility**: Security headers don't impact accessibility
+- **Privacy**: Referrer policy respects user privacy
+
+### Security Updates
+
+#### Regular Maintenance
+- Monitor security header best practices
+- Update CSP directives as needed
+- Review CORS policies regularly
+- Test with security scanners
+
+#### Incident Response
+- Security headers provide first-line defense
+- Comprehensive logging for security events
+- Rate limiting for abuse prevention
+- Error handling doesn't leak information
+
+---
+
+## 🔒 Security Reflections
+
+### Importance of HTTPS Enforcement
+HTTPS encryption is fundamental to modern web security. Without it:
+- Data can be intercepted and modified (MITM attacks)
+- User credentials and sensitive information are exposed
+- Browser security features are disabled
+- User trust is compromised
+
+Our HSTS implementation ensures:
+- **Automatic HTTPS**: Browsers always use secure connections
+- **Certificate Validation**: Invalid certificates are rejected
+- **Downgrade Prevention**: Attacks can't force HTTP connections
+- **Subdomain Protection**: All subdomains inherit security settings
+
+### CSP and CORS Impact on Third-Party Integrations
+
+#### Content Security Policy (CSP)
+**Challenges:**
+- Third-party scripts require explicit whitelisting
+- Inline styles and scripts need careful handling
+- Dynamic content sources must be anticipated
+
+**Solutions:**
+- Use nonce-based CSP for dynamic content
+- Host third-party scripts on trusted CDNs
+- Implement CSP violation reporting
+- Test thoroughly in staging environments
+
+#### Cross-Origin Resource Sharing (CORS)
+**Challenges:**
+- API access must be explicitly controlled
+- Development vs production environments differ
+- Mobile apps and web clients have different requirements
+
+**Solutions:**
+- Environment-specific CORS configurations
+- Separate API domains for different client types
+- Proper preflight request handling
+- Rate limiting and origin validation
+
+### Balancing Security and Flexibility
+
+#### Security-First Approach
+- **Default Deny**: Block everything, allow only what's necessary
+- **Explicit Configuration**: No wildcard permissions in production
+- **Regular Audits**: Review and update security policies
+- **Defense in Depth**: Multiple security layers
+
+#### Practical Considerations
+- **Development Workflow**: Security headers shouldn't hinder development
+- **Third-Party Services**: Balance security with functionality needs
+- **Performance**: Security measures should be efficient
+- **User Experience**: Security shouldn't impact legitimate users
+
+#### Future-Proofing
+- **Modular Configuration**: Easy to update security policies
+- **Monitoring**: Track security header effectiveness
+- **Compliance**: Prepare for evolving security standards
+- **Education**: Team understanding of security measures
+
+This comprehensive security implementation ensures that the FoodGuard application remains secure against common web vulnerabilities while maintaining flexibility for legitimate use cases and third-party integrations.
+
+---

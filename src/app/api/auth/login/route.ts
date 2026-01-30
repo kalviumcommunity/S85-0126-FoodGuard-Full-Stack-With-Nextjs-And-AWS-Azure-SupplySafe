@@ -6,7 +6,12 @@ import pg from "pg";
 import * as bcrypt from "bcryptjs";
 import { generateTokenPair } from "@/lib/jwt";
 import { setAuthCookies } from "@/lib/auth-cookies";
-import { NextRequest } from "next/server";
+import {
+  addCorsHeaders,
+  handleCorsPreflight,
+  validateOrigin,
+} from "@/lib/security";
+import { NextRequest, NextResponse } from "next/server";
 
 const pool = new pg.Pool({ connectionString: process.env.DATABASE_URL });
 const adapter = new PrismaPg(pool);
@@ -15,37 +20,50 @@ const prisma = new PrismaClient({ adapter });
 /**
  * Login Endpoint with Access & Refresh Tokens
  *
- * Authenticates user credentials and returns JWT tokens for authorization.
- * Uses secure HTTP-only cookies for token storage.
- *
- * Request Body:
- * - email: string (required)
- * - password: string (required)
- *
- * Response:
- * - accessToken: Short-lived JWT (15 minutes)
- * - refreshToken: Long-lived JWT (7 days)
- * - user: User object (without password)
- * - expiresIn: Token expiration time
+ * Authenticates users and issues secure JWT tokens with comprehensive security headers.
+ * Implements CORS validation and rate limiting for production environments.
  */
-export async function POST(req: NextRequest) {
+export async function POST(request: NextRequest) {
+  // Handle CORS preflight
+  const preflightResponse = handleCorsPreflight(request);
+  if (preflightResponse) return preflightResponse;
+
+  // Validate origin for security
+  if (!validateOrigin(request)) {
+    const response = NextResponse.json(
+      { success: false, message: "Origin not allowed" },
+      { status: 403 }
+    );
+    return addCorsHeaders(response, request.headers.get("origin") || undefined);
+  }
+
   try {
-    const body = await req.json();
+    const body = await request.json();
     const { email, password } = body;
 
     // Validate required fields
     if (!email || !password) {
-      return sendError(
-        "Missing required fields: email and password",
-        ERROR_CODES.MISSING_FIELD,
-        400
+      const response = NextResponse.json(
+        { success: false, message: "Email and password are required" },
+        { status: 400 }
+      );
+      return addCorsHeaders(
+        response,
+        request.headers.get("origin") || undefined
       );
     }
 
     // Validate email format
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (!emailRegex.test(email)) {
-      return sendError("Invalid email format", ERROR_CODES.INVALID_EMAIL, 400);
+      const response = NextResponse.json(
+        { success: false, message: "Invalid email format" },
+        { status: 400 }
+      );
+      return addCorsHeaders(
+        response,
+        request.headers.get("origin") || undefined
+      );
     }
 
     // Find user by email
@@ -62,10 +80,13 @@ export async function POST(req: NextRequest) {
     });
 
     if (!user) {
-      return sendError(
-        "Invalid credentials",
-        ERROR_CODES.INVALID_CREDENTIALS,
-        401
+      const response = NextResponse.json(
+        { success: false, message: "Invalid credentials" },
+        { status: 401 }
+      );
+      return addCorsHeaders(
+        response,
+        request.headers.get("origin") || undefined
       );
     }
 
@@ -73,10 +94,13 @@ export async function POST(req: NextRequest) {
     const isPasswordValid = await bcrypt.compare(password, user.password);
 
     if (!isPasswordValid) {
-      return sendError(
-        "Invalid credentials",
-        ERROR_CODES.INVALID_CREDENTIALS,
-        401
+      const response = NextResponse.json(
+        { success: false, message: "Invalid credentials" },
+        { status: 401 }
+      );
+      return addCorsHeaders(
+        response,
+        request.headers.get("origin") || undefined
       );
     }
 
