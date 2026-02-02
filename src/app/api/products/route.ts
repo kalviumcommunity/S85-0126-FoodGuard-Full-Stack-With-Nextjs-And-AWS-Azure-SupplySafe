@@ -14,7 +14,7 @@ const prisma = new PrismaClient({ adapter });
 
 /**
  * GET /api/products - List all products
- * 
+ *
  * Protected by RBAC middleware - requires 'read' permission on 'products' resource.
  */
 export const GET = withRBAC(
@@ -85,7 +85,7 @@ export const GET = withRBAC(
 
 /**
  * POST /api/products - Create a new product
- * 
+ *
  * Protected by RBAC middleware - requires 'create' permission on 'products' resource.
  */
 export const POST = withRBAC(
