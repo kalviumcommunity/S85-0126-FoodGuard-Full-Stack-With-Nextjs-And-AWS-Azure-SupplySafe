@@ -1,0 +1,123 @@
+{
+  "diagnosticSettings": {
+    "name": "SupplySafe-Diagnostic-Settings",
+    "logs": [
+      {
+        "category": "AppServiceConsoleLogs",
+        "enabled": true,
+        "retentionPolicy": {
+          "days": 30,
+          "enabled": true
+        }
+      },
+      {
+        "category": "AppServiceHTTPLogs",
+        "enabled": true,
+        "retentionPolicy": {
+          "days": 30,
+          "enabled": true
+        }
+      }
+    ],
+    "metrics": [
+      {
+        "category": "AllMetrics",
+        "enabled": true,
+        "retentionPolicy": {
+          "days": 30,
+          "enabled": true
+        }
+      }
+    ]
+  },
+  "logAnalyticsQueries": {
+    "errorRate": "AppServiceConsoleLogs | where Level == \"Error\" | summarize count() by bin(TimeGenerated, 1h)",
+    "responseTime": "AppServiceHTTPLogs | where TimeTaken > 2000 | summarize avg(TimeTaken) by bin(TimeGenerated, 1h)",
+    "authFailures": "AppServiceConsoleLogs | where Context == \"AUTH\" and StatusCode >= 400 | summarize count() by bin(TimeGenerated, 1h)",
+    "apiRequests": "AppServiceHTTPLogs | summarize count() by bin(TimeGenerated, 1h), RequestURI",
+    "topErrors": "AppServiceConsoleLogs | where Level == \"Error\" | summarize count() by Message | top 10 by count_"
+  },
+  "dashboards": {
+    "name": "SupplySafe-Application-Dashboard",
+    "tiles": [
+      {
+        "title": "Error Rate",
+        "type": "log",
+        "query": "AppServiceConsoleLogs | where Level == \"Error\" | summarize count() by bin(TimeGenerated, 1h)",
+        "visualization": "timechart"
+      },
+      {
+        "title": "Average Response Time",
+        "type": "log",
+        "query": "AppServiceHTTPLogs | summarize avg(TimeTaken) by bin(TimeGenerated, 1h)",
+        "visualization": "timechart"
+      },
+      {
+        "title": "Authentication Failures",
+        "type": "log",
+        "query": "AppServiceConsoleLogs | where Context == \"AUTH\" and StatusCode >= 400 | summarize count() by bin(TimeGenerated, 1h)",
+        "visualization": "timechart"
+      },
+      {
+        "title": "Top Error Messages",
+        "type": "log",
+        "query": "AppServiceConsoleLogs | where Level == \"Error\" | summarize count() by Message | top 10 by count_",
+        "visualization": "table"
+      }
+    ]
+  },
+  "alerts": {
+    "rules": [
+      {
+        "name": "High Error Rate",
+        "description": "Alert when error rate exceeds 10 errors per hour",
+        "query": "AppServiceConsoleLogs | where Level == \"Error\" | summarize count() by bin(TimeGenerated, 1h)",
+        "threshold": 10,
+        "operator": "GreaterThan",
+        "frequency": 60,
+        "window": 60,
+        "severity": 2,
+        "actionGroups": ["SupplySafe-Alert-Action-Group"]
+      },
+      {
+        "name": "High Response Time",
+        "description": "Alert when average response time exceeds 2 seconds",
+        "query": "AppServiceHTTPLogs | summarize avg(TimeTaken) by bin(TimeGenerated, 1h)",
+        "threshold": 2000,
+        "operator": "GreaterThan",
+        "frequency": 60,
+        "window": 60,
+        "severity": 3,
+        "actionGroups": ["SupplySafe-Alert-Action-Group"]
+      },
+      {
+        "name": "Authentication Failure Spike",
+        "description": "Alert when authentication failures exceed 5 per hour",
+        "query": "AppServiceConsoleLogs | where Context == \"AUTH\" and StatusCode >= 400 | summarize count() by bin(TimeGenerated, 1h)",
+        "threshold": 5,
+        "operator": "GreaterThan",
+        "frequency": 60,
+        "window": 60,
+        "severity": 2,
+        "actionGroups": ["SupplySafe-Alert-Action-Group"]
+      }
+    ]
+  },
+  "actionGroups": {
+    "name": "SupplySafe-Alert-Action-Group",
+    "actions": [
+      {
+        "type": "Email",
+        "settings": {
+          "customEmails": ["alerts@supplysafe.com", "devops@supplysafe.com"]
+        }
+      },
+      {
+        "type": "Webhook",
+        "settings": {
+          "serviceUri": "https://hooks.slack.com/services/YOUR/SLACK/WEBHOOK"
+        }
+      }
+    ]
+  }
+}

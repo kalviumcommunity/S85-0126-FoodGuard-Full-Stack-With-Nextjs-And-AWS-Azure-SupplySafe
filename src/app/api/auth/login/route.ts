@@ -12,6 +12,7 @@ import {
   validateOrigin,
 } from "@/lib/security";
 import { NextRequest, NextResponse } from "next/server";
+import { logger, Logger } from "@/lib/logger";
 
 const pool = new pg.Pool({ connectionString: process.env.DATABASE_URL });
 const adapter = new PrismaPg(pool);
@@ -24,9 +25,21 @@ const prisma = new PrismaClient({ adapter });
  * Implements CORS validation and rate limiting for production environments.
  */
 export async function POST(request: NextRequest) {
+  const requestId = Logger.generateRequestId();
+  const startTime = Date.now();
+
+  // Log incoming request
+  logger.logApiRequest("POST", "/api/auth/login", requestId, {
+    userAgent: request.headers.get('user-agent'),
+    ip: request.headers.get('x-forwarded-for') || request.headers.get('x-real-ip') || 'unknown',
+  });
+
   // Handle CORS preflight
   const preflightResponse = handleCorsPreflight(request);
-  if (preflightResponse) return preflightResponse;
+  if (preflightResponse) {
+    logger.logApiResponse("POST", "/api/auth/login", preflightResponse.status, requestId, Date.now() - startTime);
+    return preflightResponse;
+  }
 
   // Validate origin for security
   if (!validateOrigin(request)) {
@@ -34,12 +47,16 @@ export async function POST(request: NextRequest) {
       { success: false, message: "Origin not allowed" },
       { status: 403 }
     );
-    return addCorsHeaders(response, request.headers.get("origin") || undefined);
+    const finalResponse = addCorsHeaders(response, request.headers.get("origin") || undefined);
+    logger.logApiResponse("POST", "/api/auth/login", 403, requestId, Date.now() - startTime, { reason: "Origin not allowed" });
+    return finalResponse;
   }
 
   try {
     const body = await request.json();
     const { email, password } = body;
+
+    logger.info("Login attempt", { email }, "AUTH", requestId);
 
     // Validate required fields
     if (!email || !password) {
@@ -47,10 +64,12 @@ export async function POST(request: NextRequest) {
         { success: false, message: "Email and password are required" },
         { status: 400 }
       );
-      return addCorsHeaders(
+      const finalResponse = addCorsHeaders(
         response,
         request.headers.get("origin") || undefined
       );
+      logger.logApiResponse("POST", "/api/auth/login", 400, requestId, Date.now() - startTime, { reason: "Missing required fields" });
+      return finalResponse;
     }
 
     // Validate email format
@@ -60,10 +79,12 @@ export async function POST(request: NextRequest) {
         { success: false, message: "Invalid email format" },
         { status: 400 }
       );
-      return addCorsHeaders(
+      const finalResponse = addCorsHeaders(
         response,
         request.headers.get("origin") || undefined
       );
+      logger.logApiResponse("POST", "/api/auth/login", 400, requestId, Date.now() - startTime, { reason: "Invalid email format" });
+      return finalResponse;
     }
 
     // Find user by email
@@ -84,10 +105,12 @@ export async function POST(request: NextRequest) {
         { success: false, message: "Invalid credentials" },
         { status: 401 }
       );
-      return addCorsHeaders(
+      const finalResponse = addCorsHeaders(
         response,
         request.headers.get("origin") || undefined
       );
+      logger.logApiResponse("POST", "/api/auth/login", 401, requestId, Date.now() - startTime, { reason: "User not found", email });
+      return finalResponse;
     }
 
     // Verify password
@@ -98,10 +121,12 @@ export async function POST(request: NextRequest) {
         { success: false, message: "Invalid credentials" },
         { status: 401 }
       );
-      return addCorsHeaders(
+      const finalResponse = addCorsHeaders(
         response,
         request.headers.get("origin") || undefined
       );
+      logger.logApiResponse("POST", "/api/auth/login", 401, requestId, Date.now() - startTime, { reason: "Invalid password", email });
+      return finalResponse;
     }
 
     // Generate access and refresh tokens
@@ -130,8 +155,16 @@ export async function POST(request: NextRequest) {
     // Set secure cookies
     setAuthCookies(response, accessToken, refreshToken);
 
+    logger.logApiResponse("POST", "/api/auth/login", response.status, requestId, Date.now() - startTime, { 
+      userId: user.id, 
+      email: user.email, 
+      role: user.role 
+    });
+
     return response;
   } catch (error) {
+    logger.error("Login failed", error instanceof Error ? error : new Error("Unknown error"), { requestId }, "AUTH", requestId);
+    logger.logApiResponse("POST", "/api/auth/login", 500, requestId, Date.now() - startTime, { error: error instanceof Error ? error.message : "Unknown error" });
     return sendError("Login failed", ERROR_CODES.INTERNAL_ERROR, 500, error);
   }
 }

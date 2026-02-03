@@ -1,0 +1,84 @@
+{
+  "logConfiguration": {
+    "logDriver": "awslogs",
+    "options": {
+      "awslogs-group": "/ecs/supplysafe-app",
+      "awslogs-region": "ap-south-1",
+      "awslogs-stream-prefix": "ecs",
+      "awslogs-create-group": "true"
+    }
+  },
+  "metricFilters": [
+    {
+      "name": "ErrorCount",
+      "filterPattern": "{ $.level = \"error\" }",
+      "metricValue": "1"
+    },
+    {
+      "name": "APIResponseTime",
+      "filterPattern": "{ $.context = \"API\" && $.responseTime }",
+      "metricValue": "$.responseTime"
+    },
+    {
+      "name": "AuthFailures",
+      "filterPattern": "{ $.context = \"AUTH\" && $.statusCode >= 400 }",
+      "metricValue": "1"
+    }
+  ],
+  "dashboards": [
+    {
+      "name": "SupplySafe-Application-Metrics",
+      "widgets": [
+        {
+          "title": "API Error Rate",
+          "type": "metric",
+          "metrics": [
+            ["AWS/Logs", "ErrorCount", "LogGroupName", "/ecs/supplysafe-app"]
+          ],
+          "period": 300,
+          "stat": "Sum"
+        },
+        {
+          "title": "Average Response Time",
+          "type": "metric",
+          "metrics": [
+            ["AWS/Logs", "APIResponseTime", "LogGroupName", "/ecs/supplysafe-app"]
+          ],
+          "period": 300,
+          "stat": "Average"
+        },
+        {
+          "title": "Authentication Failures",
+          "type": "metric",
+          "metrics": [
+            ["AWS/Logs", "AuthFailures", "LogGroupName", "/ecs/supplysafe-app"]
+          ],
+          "period": 300,
+          "stat": "Sum"
+        }
+      ]
+    }
+  ],
+  "alarms": [
+    {
+      "name": "HighErrorRate",
+      "description": "Alert when error rate exceeds threshold",
+      "metric": "ErrorCount",
+      "threshold": 10,
+      "comparison": "GreaterThanThreshold",
+      "period": 300,
+      "evaluationPeriods": 2,
+      "alarmActions": ["arn:aws:sns:ap-south-1:ACCOUNT:supplysafe-alerts"]
+    },
+    {
+      "name": "HighResponseTime",
+      "description": "Alert when response time exceeds 2 seconds",
+      "metric": "APIResponseTime",
+      "threshold": 2000,
+      "comparison": "GreaterThanThreshold",
+      "period": 300,
+      "evaluationPeriods": 2,
+      "alarmActions": ["arn:aws:sns:ap-south-1:ACCOUNT:supplysafe-alerts"]
+    }
+  ]
+}
