@@ -1,7 +1,7 @@
-import { add } from "@/utils/math";
+import { add } from "../utils/math";
 
-describe("Math Logic", () => {
-  it("correctly adds two numbers", () => {
+describe("Math Utils", () => {
+  test("adds two numbers correctly", () => {
     expect(add(2, 3)).toBe(5);
   });
 });
