@@ -1403,7 +1403,87 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 ---
 
-## 🛡️ Security Implementation
+## � CI/CD Pipeline
+
+### Overview
+This project uses GitHub Actions for continuous integration and deployment, ensuring code quality, security, and reliable deployments.
+
+### Pipeline Stages
+
+#### 1. **Build & Test Stage**
+- **Linting**: ESLint with TypeScript support
+- **Type Checking**: TypeScript compilation verification
+- **Unit Tests**: Jest with React Testing Library
+- **Build**: Next.js production build validation
+
+#### 2. **Security Scanning**
+- **Dependency Audit**: `npm audit` for known vulnerabilities
+- **Security Check**: `audit-ci` for moderate/high severity issues
+
+#### 3. **Deployment**
+- **Staging**: Automatic deployment to Vercel on `develop` branch
+- **Production**: Automatic deployment to Vercel + AWS S3 on `main` branch
+
+#### 4. **Performance Testing**
+- **Lighthouse CI**: Automated performance and accessibility testing
+- **Performance Budget**: Ensures consistent user experience
+
+#### 5. **Database Migration**
+- **Production Migrations**: Automatic Prisma migrations on production deployment
+
+### Triggers
+- **Push**: `main` and `develop` branches
+- **Pull Requests**: Targeting `main` and `develop` branches
+- **Manual**: `workflow_dispatch` for on-demand runs
+
+### Environment Configuration
+- **Node.js**: Matrix testing on versions 18.x and 20.x
+- **Caching**: npm dependencies for faster builds
+- **Concurrency**: Prevents overlapping runs on same branch
+
+### Required Secrets
+See [`.github/secrets.md`](./.github/secrets.md) for complete list of required GitHub Actions secrets.
+
+### Local Development
+```bash
+# Run tests locally
+npm run test:ci
+
+# Run linting
+npm run lint
+
+# Type checking
+npm run type-check
+
+# Build locally
+npm run build
+```
+
+### Workflow File
+The CI pipeline is configured in [`.github/workflows/ci.yml`](./.github/workflows/ci.yml) with all stages properly configured.
+
+### Reflections
+
+#### Build Caching and Speed Optimization
+- **Dependency Caching**: Uses GitHub Actions cache to speed up `npm ci` installations
+- **Matrix Strategy**: Tests on multiple Node.js versions (18.x, 20.x) for compatibility
+- **Parallel Execution**: Runs lint, test, and build stages in parallel where possible
+- **Artifact Upload**: Stores build artifacts for later deployment stages
+
+#### Managing Concurrency and Parallel Jobs
+- **Concurrency Groups**: Prevents overlapping runs on the same branch using `group: ${{ github.ref }}`
+- **Cancel-in-Progress**: Automatically cancels older runs when new commits are pushed
+- **Job Dependencies**: Ensures proper execution order (build → security → deploy)
+
+#### Secure Secrets Handling
+- **GitHub Secrets**: All sensitive data stored in GitHub repository secrets
+- **Environment Variables**: Properly scoped for staging vs production environments
+- **No Hardcoded Credentials**: No API keys, tokens, or passwords in source code
+- **Secure Communication**: Uses HTTPS for all external service communications
+
+---
+
+## �🛡️ Security Implementation
 
 ### Overview
 This application implements enterprise-grade security measures to protect against common web vulnerabilities and ensure secure communication between clients and servers.
