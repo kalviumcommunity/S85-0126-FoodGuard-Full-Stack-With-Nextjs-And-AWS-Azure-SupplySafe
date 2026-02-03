@@ -20,8 +20,8 @@
     "db:generate": "prisma generate",
     "db:push": "prisma db push",
     "test": "jest",
-  "test:watch": "jest --watch",
-  "test:coverage": "jest --coverage"
+    "test:watch": "jest --watch",
+    "test:coverage": "jest --coverage"
   },
   "dependencies": {
     "@aws-sdk/client-secrets-manager": "^3.980.0",
