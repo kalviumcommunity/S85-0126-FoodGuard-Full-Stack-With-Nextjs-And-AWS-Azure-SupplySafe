@@ -25,7 +25,7 @@ export default function TestContext() {
 
       <div className="flex gap-2 mt-4">
         <button
-          onClick={() => login("TestUser")}
+          onClick={() => login("test@example.com", "password")}
           className="bg-green-500 text-white px-2 py-1 rounded text-sm"
         >
           Test Login

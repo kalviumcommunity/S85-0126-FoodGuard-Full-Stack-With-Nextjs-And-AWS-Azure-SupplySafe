@@ -1,63 +1,63 @@
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { Badge } from '@/components/ui/badge'
-import { Progress } from '@/components/ui/progress'
-import { CheckCircle, AlertTriangle, XCircle, Clock } from 'lucide-react'
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { Progress } from "@/components/ui/progress";
+import { CheckCircle, AlertTriangle, XCircle, Clock } from "lucide-react";
 
 const hygieneData = [
   {
-    category: 'Food Handling',
+    category: "Food Handling",
     score: 92,
-    status: 'compliant',
+    status: "compliant",
     issues: 0,
-    lastChecked: '2 hours ago'
+    lastChecked: "2 hours ago",
   },
   {
-    category: 'Storage Temperature',
+    category: "Storage Temperature",
     score: 88,
-    status: 'compliant',
+    status: "compliant",
     issues: 1,
-    lastChecked: '1 hour ago'
+    lastChecked: "1 hour ago",
   },
   {
-    category: 'Kitchen Cleanliness',
+    category: "Kitchen Cleanliness",
     score: 76,
-    status: 'warning',
+    status: "warning",
     issues: 3,
-    lastChecked: '30 mins ago'
+    lastChecked: "30 mins ago",
   },
   {
-    category: 'Personal Hygiene',
+    category: "Personal Hygiene",
     score: 95,
-    status: 'compliant',
+    status: "compliant",
     issues: 0,
-    lastChecked: '45 mins ago'
+    lastChecked: "45 mins ago",
   },
   {
-    category: 'Equipment Sanitation',
+    category: "Equipment Sanitation",
     score: 68,
-    status: 'critical',
+    status: "critical",
     issues: 5,
-    lastChecked: '15 mins ago'
-  }
-]
+    lastChecked: "15 mins ago",
+  },
+];
 
 export function HygieneComplianceStatus() {
   const overallScore = Math.round(
     hygieneData.reduce((acc, item) => acc + item.score, 0) / hygieneData.length
-  )
+  );
 
   const getStatusIcon = (status: string) => {
     switch (status) {
-      case 'compliant':
-        return <CheckCircle className="w-4 h-4 text-green-600" />
-      case 'warning':
-        return <AlertTriangle className="w-4 h-4 text-amber-600" />
-      case 'critical':
-        return <XCircle className="w-4 h-4 text-red-600" />
+      case "compliant":
+        return <CheckCircle className="w-4 h-4 text-green-600" />;
+      case "warning":
+        return <AlertTriangle className="w-4 h-4 text-amber-600" />;
+      case "critical":
+        return <XCircle className="w-4 h-4 text-red-600" />;
       default:
-        return <Clock className="w-4 h-4 text-gray-400" />
+        return <Clock className="w-4 h-4 text-gray-400" />;
     }
-  }
+  };
 
   return (
     <Card>
@@ -67,7 +67,9 @@ export function HygieneComplianceStatus() {
             Hygiene Compliance Status
           </CardTitle>
           <div className="text-right">
-            <div className="text-2xl font-bold text-gray-900">{overallScore}%</div>
+            <div className="text-2xl font-bold text-gray-900">
+              {overallScore}%
+            </div>
             <div className="text-xs text-gray-500">Overall Score</div>
           </div>
         </div>
@@ -87,16 +89,23 @@ export function HygieneComplianceStatus() {
                   <span className="text-sm font-semibold text-gray-900">
                     {item.score}%
                   </span>
-                  <Badge variant={item.status === 'compliant' ? 'compliant' : 
-                                  item.status === 'warning' ? 'pending' : 'critical'}
-                          className="text-xs">
+                  <Badge
+                    variant={
+                      item.status === "compliant"
+                        ? "compliant"
+                        : item.status === "warning"
+                          ? "pending"
+                          : "critical"
+                    }
+                    className="text-xs"
+                  >
                     {item.status}
                   </Badge>
                 </div>
               </div>
-              
+
               <Progress value={item.score} className="h-2" />
-              
+
               <div className="flex items-center justify-between text-xs text-gray-500">
                 <span>{item.issues} issues found</span>
                 <span>Last checked: {item.lastChecked}</span>
@@ -104,7 +113,7 @@ export function HygieneComplianceStatus() {
             </div>
           ))}
         </div>
-        
+
         <div className="mt-6 pt-4 border-t border-gray-200">
           <div className="flex items-center justify-between text-sm">
             <span className="text-gray-600">Quick Actions</span>
@@ -121,5 +130,5 @@ export function HygieneComplianceStatus() {
         </div>
       </CardContent>
     </Card>
-  )
+  );
 }

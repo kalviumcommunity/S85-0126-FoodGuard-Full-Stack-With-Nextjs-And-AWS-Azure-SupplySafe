@@ -1,11 +1,11 @@
-import { NextRequest, NextResponse } from 'next/server';
-import { 
-  Role, 
-  Permission, 
-  Resource, 
-  checkPermission, 
-  logAccessCheck 
-} from './rbac';
+import { NextRequest, NextResponse } from "next/server";
+import {
+  Role,
+  Permission,
+  Resource,
+  checkPermission,
+  logAccessCheck,
+} from "./rbac";
 
 // RBAC middleware configuration for API routes
 export interface RBACConfig {
@@ -18,22 +18,22 @@ export interface RBACConfig {
 
 // Default headers where user info is stored (set by main middleware)
 const DEFAULT_HEADERS = {
-  userId: 'x-user-id',
-  userRole: 'x-user-role',
-  userName: 'x-user-name',
-  userEmail: 'x-user-email',
+  userId: "x-user-id",
+  userRole: "x-user-role",
+  userName: "x-user-name",
+  userEmail: "x-user-email",
 };
 
 /**
  * RBAC Middleware for API Routes
- * 
+ *
  * This middleware should be used in individual API routes to check permissions
  * after the main authentication middleware has verified the JWT and set user headers.
- * 
+ *
  * Usage:
  * ```typescript
  * import { withRBAC } from '@/lib/rbac-middleware';
- * 
+ *
  * export const GET = withRBAC(
  *   async (req, data) => {
  *     // Your API logic here
@@ -44,7 +44,15 @@ const DEFAULT_HEADERS = {
  * ```
  */
 export function withRBAC(
-  handler: (req: NextRequest, data: { userId: string; userRole: Role; userName: string; userEmail: string }) => Promise<NextResponse> | NextResponse,
+  handler: (
+    req: NextRequest,
+    data: {
+      userId: string;
+      userRole: Role;
+      userName: string;
+      userEmail: string;
+    }
+  ) => Promise<NextResponse> | NextResponse,
   config: RBACConfig = {}
 ) {
   return async (req: NextRequest): Promise<NextResponse> => {
@@ -59,18 +67,18 @@ export function withRBAC(
     // Extract user information from headers (set by main middleware)
     const userId = req.headers.get(userIdHeader);
     const userRoleStr = req.headers.get(userRoleHeader);
-    const userName = req.headers.get(DEFAULT_HEADERS.userName) || '';
-    const userEmail = req.headers.get(DEFAULT_HEADERS.userEmail) || '';
+    const userName = req.headers.get(DEFAULT_HEADERS.userName) || "";
+    const userEmail = req.headers.get(DEFAULT_HEADERS.userEmail) || "";
 
     // Check if user is authenticated
     if (!userId || !userRoleStr) {
       return NextResponse.json(
         {
           success: false,
-          message: 'Authentication required',
+          message: "Authentication required",
           error: {
-            code: 'E401',
-            details: 'User not authenticated',
+            code: "E401",
+            details: "User not authenticated",
           },
           timestamp: new Date().toISOString(),
         },
@@ -80,13 +88,13 @@ export function withRBAC(
 
     // Validate role
     const userRole = userRoleStr as Role;
-    if (!['admin', 'editor', 'viewer'].includes(userRole)) {
+    if (!["admin", "editor", "viewer"].includes(userRole)) {
       return NextResponse.json(
         {
           success: false,
-          message: 'Invalid user role',
+          message: "Invalid user role",
           error: {
-            code: 'E403',
+            code: "E403",
             details: `Invalid role: ${userRole}`,
           },
           timestamp: new Date().toISOString(),
@@ -99,13 +107,13 @@ export function withRBAC(
     if (requiredRole) {
       const { allowed, reason } = checkRoleAccess(userRole, requiredRole);
       if (!allowed) {
-        logAccessCheck(userId, userRole, 'access', undefined, false, reason);
+        logAccessCheck(userId, userRole, "read", undefined, false, reason);
         return NextResponse.json(
           {
             success: false,
-            message: 'Access denied',
+            message: "Access denied",
             error: {
-              code: 'E403',
+              code: "E403",
               details: reason,
             },
             timestamp: new Date().toISOString(),
@@ -117,15 +125,26 @@ export function withRBAC(
 
     // Check permission-based access
     if (requiredPermission) {
-      const { allowed, reason } = checkPermission(userRole, requiredPermission, resource);
+      const { allowed, reason } = checkPermission(
+        userRole,
+        requiredPermission,
+        resource
+      );
       if (!allowed) {
-        logAccessCheck(userId, userRole, requiredPermission, resource, false, reason);
+        logAccessCheck(
+          userId,
+          userRole,
+          requiredPermission,
+          resource,
+          false,
+          reason
+        );
         return NextResponse.json(
           {
             success: false,
-            message: 'Access denied',
+            message: "Access denied",
             error: {
-              code: 'E403',
+              code: "E403",
               details: reason,
             },
             timestamp: new Date().toISOString(),
@@ -151,7 +170,10 @@ export function withRBAC(
 /**
  * Check if user has required role level
  */
-function checkRoleAccess(userRole: Role, requiredRole: Role): { allowed: boolean; reason?: string } {
+function checkRoleAccess(
+  userRole: Role,
+  requiredRole: Role
+): { allowed: boolean; reason?: string } {
   const roleHierarchy = {
     admin: 3,
     editor: 2,
@@ -175,7 +197,15 @@ function checkRoleAccess(userRole: Role, requiredRole: Role): { allowed: boolean
  * Higher-order function for creating RBAC-protected API routes
  */
 export function createProtectedRoute(
-  handler: (req: NextRequest, data: { userId: string; userRole: Role; userName: string; userEmail: string }) => Promise<NextResponse> | NextResponse,
+  handler: (
+    req: NextRequest,
+    data: {
+      userId: string;
+      userRole: Role;
+      userName: string;
+      userEmail: string;
+    }
+  ) => Promise<NextResponse> | NextResponse,
   config: RBACConfig
 ) {
   return withRBAC(handler, config);
@@ -198,10 +228,10 @@ export function requirePermission(
       response: NextResponse.json(
         {
           success: false,
-          message: 'Authentication required',
+          message: "Authentication required",
           error: {
-            code: 'E401',
-            details: 'User not authenticated',
+            code: "E401",
+            details: "User not authenticated",
           },
           timestamp: new Date().toISOString(),
         },
@@ -220,9 +250,9 @@ export function requirePermission(
       response: NextResponse.json(
         {
           success: false,
-          message: 'Access denied',
+          message: "Access denied",
           error: {
-            code: 'E403',
+            code: "E403",
             details: reason,
           },
           timestamp: new Date().toISOString(),

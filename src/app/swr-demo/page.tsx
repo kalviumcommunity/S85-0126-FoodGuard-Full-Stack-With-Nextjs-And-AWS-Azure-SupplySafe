@@ -6,17 +6,21 @@ import { useState } from "react";
 
 export default function SWRDemoPage() {
   const { cache } = useSWRConfig();
-  
+
   // Basic SWR usage with error handling and revalidation strategies
-  const { data, error, isLoading, mutate } = useSWR("/api/demo-users", fetcher, {
-    revalidateOnFocus: true,
-    refreshInterval: 10000, // Auto-refresh every 10 seconds
-    onErrorRetry: (_error, _key, _config, revalidate, { retryCount }) => {
-      // Custom retry logic
-      if (retryCount >= 3) return;
-      setTimeout(() => revalidate({ retryCount }), 2000);
-    },
-  });
+  const { data, error, isLoading, mutate } = useSWR(
+    "/api/demo-users",
+    fetcher,
+    {
+      revalidateOnFocus: true,
+      refreshInterval: 10000, // Auto-refresh every 10 seconds
+      onErrorRetry: (_error, _key, _config, revalidate, { retryCount }) => {
+        // Custom retry logic
+        if (retryCount >= 3) return;
+        setTimeout(() => revalidate({ retryCount }), 2000);
+      },
+    }
+  );
 
   // Dynamic SWR key example
   const [userId, setUserId] = useState<number | null>(null);
@@ -40,16 +44,18 @@ export default function SWRDemoPage() {
   return (
     <main className="p-6 max-w-4xl mx-auto">
       <h1 className="text-3xl font-bold mb-6">SWR Demo - Advanced Features</h1>
-      
+
       {/* Cache Status */}
       <section className="mb-8 p-4 bg-gray-50 rounded-lg">
         <h2 className="text-xl font-semibold mb-3">Cache Status</h2>
         <div className="space-y-2">
           <p className="text-sm">
-            <strong>Cache Keys:</strong> {Array.from(cache.keys()).join(", ") || "None"}
+            <strong>Cache Keys:</strong>{" "}
+            {Array.from(cache.keys()).join(", ") || "None"}
           </p>
           <p className="text-sm">
-            <strong>Cache Size:</strong> {Array.from(cache.keys()).length} entries
+            <strong>Cache Size:</strong> {Array.from(cache.keys()).length}{" "}
+            entries
           </p>
           <div className="flex gap-2 mt-3">
             <button
@@ -86,8 +92,12 @@ export default function SWRDemoPage() {
             </p>
             <ul className="space-y-2">
               {data.map((user: any) => (
-                <li key={user.id} className="p-3 border border-gray-200 rounded">
-                  <span className="font-medium">{user.name}</span> — {user.email}
+                <li
+                  key={user.id}
+                  className="p-3 border border-gray-200 rounded"
+                >
+                  <span className="font-medium">{user.name}</span> —{" "}
+                  {user.email}
                 </li>
               ))}
             </ul>
@@ -107,7 +117,9 @@ export default function SWRDemoPage() {
             min="1"
             max="3"
             value={userId || ""}
-            onChange={(e) => setUserId(e.target.value ? parseInt(e.target.value) : null)}
+            onChange={(e) =>
+              setUserId(e.target.value ? parseInt(e.target.value) : null)
+            }
             className="border px-3 py-2 rounded mr-2"
             placeholder="Enter user ID"
           />
@@ -118,27 +130,44 @@ export default function SWRDemoPage() {
             Clear
           </button>
         </div>
-        
+
         {singleUserError && (
           <p className="text-red-600">User not found or error occurred.</p>
         )}
         {singleUser && (
           <div className="p-4 bg-blue-50 border border-blue-200 rounded">
             <h3 className="font-semibold mb-2">Selected User:</h3>
-            <p><strong>Name:</strong> {singleUser.name}</p>
-            <p><strong>Email:</strong> {singleUser.email}</p>
+            <p>
+              <strong>Name:</strong> {singleUser.name}
+            </p>
+            <p>
+              <strong>Email:</strong> {singleUser.email}
+            </p>
           </div>
         )}
       </section>
 
       {/* SWR Configuration Info */}
       <section className="p-4 bg-yellow-50 rounded-lg">
-        <h2 className="text-xl font-semibold mb-3">Current SWR Configuration</h2>
+        <h2 className="text-xl font-semibold mb-3">
+          Current SWR Configuration
+        </h2>
         <ul className="text-sm space-y-1">
-          <li>• <strong>revalidateOnFocus:</strong> true (refreshes when tab gains focus)</li>
-          <li>• <strong>refreshInterval:</strong> 10000ms (auto-refresh every 10 seconds)</li>
-          <li>• <strong>onErrorRetry:</strong> Custom logic (max 3 retries, 2s delay)</li>
-          <li>• <strong>Optimistic Updates:</strong> Enabled in AddUser component</li>
+          <li>
+            • <strong>revalidateOnFocus:</strong> true (refreshes when tab gains
+            focus)
+          </li>
+          <li>
+            • <strong>refreshInterval:</strong> 10000ms (auto-refresh every 10
+            seconds)
+          </li>
+          <li>
+            • <strong>onErrorRetry:</strong> Custom logic (max 3 retries, 2s
+            delay)
+          </li>
+          <li>
+            • <strong>Optimistic Updates:</strong> Enabled in AddUser component
+          </li>
         </ul>
       </section>
     </main>

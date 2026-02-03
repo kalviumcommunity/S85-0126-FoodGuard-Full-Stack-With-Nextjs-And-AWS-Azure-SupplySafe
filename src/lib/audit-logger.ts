@@ -1,4 +1,4 @@
-import { Role, Permission, Resource } from './rbac';
+import { Role, Permission, Resource } from "./rbac";
 
 export interface AuditLogEntry {
   userId: string;
@@ -17,7 +17,7 @@ export interface AuditLogEntry {
 
 /**
  * Audit Logger for RBAC Access Control
- * 
+ *
  * Logs all permission checks and access attempts to console and optionally to database.
  * Provides comprehensive audit trail for security compliance.
  */
@@ -29,12 +29,14 @@ export class AuditLogger {
     try {
       // Log to console for immediate visibility
       const timestamp = new Date().toISOString();
-      const status = entry.allowed ? 'ALLOWED' : 'DENIED';
-      const resourceInfo = entry.resource ? ` on ${entry.resource}` : '';
-      const resourceIdInfo = entry.resourceId ? ` (${entry.resourceId})` : '';
-      
-      console.log(`[RBAC AUDIT] ${timestamp} - ${entry.userRole} tried ${entry.action}${resourceInfo}${resourceIdInfo}: ${status}`);
-      
+      const status = entry.allowed ? "ALLOWED" : "DENIED";
+      const resourceInfo = entry.resource ? ` on ${entry.resource}` : "";
+      const resourceIdInfo = entry.resourceId ? ` (${entry.resourceId})` : "";
+
+      console.log(
+        `[RBAC AUDIT] ${timestamp} - ${entry.userRole} tried ${entry.action}${resourceInfo}${resourceIdInfo}: ${status}`
+      );
+
       if (entry.reason) {
         console.log(`[RBAC AUDIT] Reason: ${entry.reason}`);
       }
@@ -42,7 +44,7 @@ export class AuditLogger {
       // Note: Database logging would require an AuditLog model in Prisma schema
       // For now, we'll just log to console
       // TODO: Add AuditLog model to Prisma schema and uncomment the database logging
-      
+
       /*
       await prisma.auditLog.create({
         data: {
@@ -62,10 +64,9 @@ export class AuditLogger {
         },
       });
       */
-
     } catch (error) {
       // Log error but don't throw to avoid breaking the main flow
-      console.error('[RBAC AUDIT] Failed to log access:', error);
+      console.error("[RBAC AUDIT] Failed to log access:", error);
     }
   }
 
@@ -123,7 +124,9 @@ export class AuditLogger {
     limit: number = 100,
     offset: number = 0
   ) {
-    console.log(`[RBAC AUDIT] Getting audit logs for user ${userId} (limit: ${limit}, offset: ${offset})`);
+    console.log(
+      `[RBAC AUDIT] Getting audit logs for user ${userId} (limit: ${limit}, offset: ${offset})`
+    );
     // TODO: Implement when AuditLog model is added to Prisma schema
     return [];
   }
@@ -137,7 +140,9 @@ export class AuditLogger {
     limit: number = 100,
     offset: number = 0
   ) {
-    console.log(`[RBAC AUDIT] Getting audit logs for resource ${resource} ${resourceId ? `(${resourceId})` : ''} (limit: ${limit}, offset: ${offset})`);
+    console.log(
+      `[RBAC AUDIT] Getting audit logs for resource ${resource} ${resourceId ? `(${resourceId})` : ""} (limit: ${limit}, offset: ${offset})`
+    );
     // TODO: Implement when AuditLog model is added to Prisma schema
     return [];
   }
@@ -149,7 +154,9 @@ export class AuditLogger {
     limit: number = 100,
     offset: number = 0
   ) {
-    console.log(`[RBAC AUDIT] Getting denied access attempts (limit: ${limit}, offset: ${offset})`);
+    console.log(
+      `[RBAC AUDIT] Getting denied access attempts (limit: ${limit}, offset: ${offset})`
+    );
     // TODO: Implement when AuditLog model is added to Prisma schema
     return [];
   }
@@ -183,28 +190,28 @@ export class AuditLogger {
       endDate?: Date;
     } = {}
   ): Promise<string> {
-    console.log('[RBAC AUDIT] Exporting audit logs to CSV with filters:', filters);
-    
+    console.log("[RBAC AUDIT] Exporting audit logs to CSV with filters:", filters);
+
     // Return CSV headers for now
     const headers = [
-      'Timestamp',
-      'User ID',
-      'User Name',
-      'User Email',
-      'Role',
-      'Action',
-      'Resource',
-      'Resource ID',
-      'Allowed',
-      'Reason',
-      'IP Address',
-      'User Agent',
-      'Endpoint',
-      'Method',
-      'Status Code',
+      "Timestamp",
+      "User ID",
+      "User Name",
+      "User Email",
+      "Role",
+      "Action",
+      "Resource",
+      "Resource ID",
+      "Allowed",
+      "Reason",
+      "IP Address",
+      "User Agent",
+      "Endpoint",
+      "Method",
+      "Status Code",
     ];
 
-    return headers.join(',') + '\n';
+    return headers.join(",") + "\n";
   }
 }
 
@@ -214,31 +221,31 @@ export class AuditLogger {
 export function createAuditLogger() {
   return async (req: any, res: any, next: any) => {
     const originalSend = res.send;
-    
-    res.send = function(body: any) {
+
+    res.send = function (body: any) {
       // Log the response after it's sent
       setImmediate(async () => {
-        const userId = req.headers.get('x-user-id');
-        const userRole = req.headers.get('x-user-role') as Role;
-        
+        const userId = req.headers.get("x-user-id");
+        const userRole = req.headers.get("x-user-role") as Role;
+
         if (userId && userRole) {
           await AuditLogger.logAccess({
             userId,
             userRole,
-            action: 'api_access' as Permission,
+            action: "api_access" as Permission,
             allowed: res.statusCode < 400,
             endpoint: req.url,
             method: req.method,
             statusCode: res.statusCode,
-            ipAddress: req.ip || req.headers.get('x-forwarded-for'),
-            userAgent: req.headers.get('user-agent'),
+            ipAddress: req.ip || req.headers.get("x-forwarded-for"),
+            userAgent: req.headers.get("user-agent"),
           });
         }
       });
-      
+
       return originalSend.call(this, body);
     };
-    
+
     next();
   };
 }

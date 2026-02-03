@@ -1,40 +1,40 @@
 // Role-Based Access Control (RBAC) Configuration
 
 export const roles = {
-  admin: ['create', 'read', 'update', 'delete'] as const,
-  editor: ['read', 'update'] as const,
-  viewer: ['read'] as const,
+  admin: ["create", "read", "update", "delete"] as const,
+  editor: ["read", "update"] as const,
+  viewer: ["read"] as const,
 } as const;
 
 export type Role = keyof typeof roles;
-export type Permission = typeof roles.admin[number];
+export type Permission = (typeof roles.admin)[number];
 
 // Resource-specific permissions
 export const resourcePermissions = {
   users: {
-    admin: ['create', 'read', 'update', 'delete'] as const,
-    editor: ['read', 'update'] as const,
-    viewer: ['read'] as const,
+    admin: ["create", "read", "update", "delete"] as const,
+    editor: ["read", "update"] as const,
+    viewer: ["read"] as const,
   },
   products: {
-    admin: ['create', 'read', 'update', 'delete'] as const,
-    editor: ['create', 'read', 'update'] as const,
-    viewer: ['read'] as const,
+    admin: ["create", "read", "update", "delete"] as const,
+    editor: ["create", "read", "update"] as const,
+    viewer: ["read"] as const,
   },
   orders: {
-    admin: ['create', 'read', 'update', 'delete'] as const,
-    editor: ['create', 'read', 'update'] as const,
-    viewer: ['read'] as const,
+    admin: ["create", "read", "update", "delete"] as const,
+    editor: ["create", "read", "update"] as const,
+    viewer: ["read"] as const,
   },
   suppliers: {
-    admin: ['create', 'read', 'update', 'delete'] as const,
-    editor: ['read', 'update'] as const,
-    viewer: ['read'] as const,
+    admin: ["create", "read", "update", "delete"] as const,
+    editor: ["read", "update"] as const,
+    viewer: ["read"] as const,
   },
   dashboard: {
-    admin: ['read'] as const,
-    editor: ['read'] as const,
-    viewer: ['read'] as const,
+    admin: ["read"] as const,
+    editor: ["read"] as const,
+    viewer: ["read"] as const,
   },
 } as const;
 
@@ -51,7 +51,9 @@ export function hasResourcePermission(
   resource: Resource,
   permission: Permission
 ): boolean {
-  return resourcePermissions[resource]?.[role]?.includes(permission as any) || false;
+  return (
+    resourcePermissions[resource]?.[role]?.includes(permission as any) || false
+  );
 }
 
 // Get all permissions for a role
@@ -60,7 +62,10 @@ export function getRolePermissions(role: Role): Permission[] {
 }
 
 // Get all permissions for a role on a specific resource
-export function getResourcePermissions(role: Role, resource: Resource): Permission[] {
+export function getResourcePermissions(
+  role: Role,
+  resource: Resource
+): Permission[] {
   return [...(resourcePermissions[resource][role] || [])];
 }
 
@@ -90,7 +95,7 @@ export function hasRoleLevel(userRole: Role, requiredRole: Role): boolean {
 
 // Get all roles that have a specific permission
 export function getRolesWithPermission(permission: Permission): Role[] {
-  return (Object.keys(roles) as Role[]).filter(role => 
+  return (Object.keys(roles) as Role[]).filter((role) =>
     roles[role].includes(permission as any)
   );
 }
@@ -114,9 +119,11 @@ export function logAccessCheck(
     allowed,
     reason,
   };
-  
-  console.log(`[RBAC] ${userRole} tried ${action}${resource ? ` on ${resource}` : ''}: ${allowed ? 'ALLOWED' : 'DENIED'}`);
-  console.log(`[RBAC] Details:`, JSON.stringify(logEntry, null, 2));
+
+  console.log(
+    `[RBAC] ${userRole} tried ${action}${resource ? ` on ${resource}` : ""}: ${allowed ? "ALLOWED" : "DENIED"}`
+  );
+  console.log("[RBAC] Details:", JSON.stringify(logEntry, null, 2));
 }
 
 // Middleware helper function for API routes
@@ -126,14 +133,14 @@ export function checkPermission(
   resource?: Resource
 ): { allowed: boolean; reason?: string } {
   const allowed = canPerformAction(userRole, requiredPermission, resource);
-  
+
   if (!allowed) {
-    const reason = resource 
+    const reason = resource
       ? `Role '${userRole}' does not have '${requiredPermission}' permission on resource '${resource}'`
       : `Role '${userRole}' does not have '${requiredPermission}' permission`;
-    
+
     return { allowed: false, reason };
   }
-  
+
   return { allowed: true };
 }

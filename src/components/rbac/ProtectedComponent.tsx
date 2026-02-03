@@ -1,8 +1,8 @@
 "use client";
 
-import React from 'react';
-import { useAuth } from '@/context/AuthContext';
-import { Role, Permission, Resource, canPerformAction } from '@/lib/rbac';
+import React from "react";
+import { useAuth } from "@/context/AuthContext";
+import { Role, Permission, Resource, canPerformAction } from "@/lib/rbac";
 
 interface ProtectedComponentProps {
   children: React.ReactNode;
@@ -14,13 +14,13 @@ interface ProtectedComponentProps {
 
 /**
  * ProtectedComponent - Conditionally renders children based on user permissions
- * 
+ *
  * Usage:
  * ```tsx
  * <ProtectedComponent requiredPermission="delete" resource="users">
  *   <button>Delete User</button>
  * </ProtectedComponent>
- * 
+ *
  * <ProtectedComponent requiredRole="admin">
  *   <AdminPanel />
  * </ProtectedComponent>
@@ -61,7 +61,7 @@ export function ProtectedComponent({
   // Check permission-based access
   if (requiredPermission) {
     const hasAccess = canPerformAction(userRole, requiredPermission, resource);
-    
+
     if (!hasAccess) {
       return fallback ? <>{fallback}</> : null;
     }
@@ -85,7 +85,7 @@ export function usePermissions() {
 
   const hasRole = (role: Role): boolean => {
     if (!user) return false;
-    
+
     const roleHierarchy = {
       admin: 3,
       editor: 2,
@@ -98,9 +98,9 @@ export function usePermissions() {
     return userLevel >= requiredLevel;
   };
 
-  const isAdmin = (): boolean => hasRole('admin');
-  const isEditor = (): boolean => hasRole('editor');
-  const isViewer = (): boolean => hasRole('viewer');
+  const isAdmin = (): boolean => hasRole("admin");
+  const isEditor = (): boolean => hasRole("editor");
+  const isViewer = (): boolean => hasRole("viewer");
 
   return {
     can,
