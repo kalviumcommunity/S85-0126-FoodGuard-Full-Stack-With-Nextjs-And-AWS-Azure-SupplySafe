@@ -139,6 +139,21 @@ jobs:
           echo "🌐 Staging URL: https://staging.foodguard-demo.com"
           echo "✅ Staging deployment completed!"
       
+      - name: Verify Deployment
+        run: |
+          echo "🔍 Running deployment verification..."
+          # Wait for deployment to be ready
+          sleep 30
+          # Health check
+          curl -f https://staging.foodguard-demo.com/api/health || exit 1
+          echo "✅ Health check passed"
+      
+      - name: Run Smoke Tests
+        run: |
+          echo "💨 Running smoke tests..."
+          npm run test:smoke || exit 1
+          echo "✅ Smoke tests passed"
+      
       - name: Notify deployment success
         run: echo "🚀 Staging deployment completed successfully!"
 
@@ -165,6 +180,29 @@ jobs:
           echo "📦 Build artifacts downloaded successfully"
           echo "🌐 Production URL: https://foodguard-demo.com"
           echo "✅ Production deployment completed!"
+      
+      - name: Verify Production Deployment
+        run: |
+          echo "🔍 Running production deployment verification..."
+          # Wait for deployment to be ready
+          sleep 30
+          # Health check
+          curl -f https://foodguard-demo.com/api/health || exit 1
+          echo "✅ Production health check passed"
+      
+      - name: Run Production Smoke Tests
+        run: |
+          echo "💨 Running production smoke tests..."
+          npm run test:smoke || exit 1
+          echo "✅ Production smoke tests passed"
+      
+      - name: Rollback Production Deployment
+        if: failure()
+        run: |
+          echo "❌ Production deployment failed. Rolling back to previous version..."
+          # Simulate rollback - in real scenario, this would revert to previous Docker image/build
+          echo "🔄 Rolling back deployment..."
+          echo "✅ Rollback completed successfully"
       
       - name: Notify deployment success
         run: |

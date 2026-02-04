@@ -21,7 +21,8 @@
     "db:push": "prisma db push",
     "test": "jest",
     "test:watch": "jest --watch",
-    "test:coverage": "jest --coverage"
+    "test:coverage": "jest --coverage",
+    "test:smoke": "jest --testPathPattern=__smoke_tests__ --runInBand"
   },
   "dependencies": {
     "@aws-sdk/client-secrets-manager": "^3.980.0",
