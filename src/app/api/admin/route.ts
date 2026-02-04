@@ -9,20 +9,25 @@ const adapter = new PrismaPg(pool);
 const prisma = new PrismaClient({ adapter });
 
 /**
- * Admin Dashboard Route
- *
- * This route is protected by middleware and requires ADMIN role.
- * It provides administrative access to system-wide data and statistics.
+ * @swagger
+ * /api/admin:
+ * get:
+ * summary: Retrieve Admin Dashboard statistics
+ * description: Fetches system-wide counts for users, suppliers, products, and orders. Requires ADMIN role.
+ * security:
+ * - bearerAuth: []
+ * responses:
+ * 200:
+ * description: Successfully fetched dashboard data.
+ * 500:
+ * description: Database error occurred.
  */
-
 export async function GET(req: Request) {
   try {
-    // Get user info from middleware-injected headers
     const userEmail = req.headers.get("x-user-email");
     const userRole = req.headers.get("x-user-role");
     const userName = req.headers.get("x-user-name");
 
-    // Fetch system statistics for admin dashboard
     const [userCount, supplierCount, productCount, orderCount] =
       await Promise.all([
         prisma.user.count(),
@@ -69,8 +74,33 @@ export async function GET(req: Request) {
 }
 
 /**
- * Admin action - Fetch all users with detailed information
- * POST /api/admin with action: "list_users"
+ * @swagger
+ * /api/admin:
+ * post:
+ * summary: Execute administrative actions
+ * description: Handles specific admin tasks based on the action provided in the request body.
+ * security:
+ * - bearerAuth: []
+ * requestBody:
+ * required: true
+ * content:
+ * application/json:
+ * schema:
+ * type: object
+ * required:
+ * - action
+ * properties:
+ * action:
+ * type: string
+ * enum: [list_users, system_stats]
+ * description: The administrative action to perform.
+ * responses:
+ * 200:
+ * description: Action executed successfully.
+ * 400:
+ * description: Invalid action provided.
+ * 500:
+ * description: Database error.
  */
 export async function POST(req: Request) {
   try {
