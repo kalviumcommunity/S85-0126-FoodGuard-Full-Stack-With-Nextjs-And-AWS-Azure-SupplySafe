@@ -76,7 +76,14 @@ class Logger {
     context?: string,
     requestId?: string
   ): void {
-    const entry = this.formatLog("info", message, meta, context, undefined, requestId);
+    const entry = this.formatLog(
+      "info",
+      message,
+      meta,
+      context,
+      undefined,
+      requestId
+    );
     this.writeLog(entry);
   }
 
@@ -86,7 +93,14 @@ class Logger {
     context?: string,
     requestId?: string
   ): void {
-    const entry = this.formatLog("warn", message, meta, context, undefined, requestId);
+    const entry = this.formatLog(
+      "warn",
+      message,
+      meta,
+      context,
+      undefined,
+      requestId
+    );
     this.writeLog(entry);
   }
 
@@ -97,7 +111,14 @@ class Logger {
     context?: string,
     requestId?: string
   ): void {
-    const entry = this.formatLog("error", message, meta, context, error, requestId);
+    const entry = this.formatLog(
+      "error",
+      message,
+      meta,
+      context,
+      error,
+      requestId
+    );
     this.writeLog(entry);
   }
 
@@ -108,7 +129,14 @@ class Logger {
     requestId?: string
   ): void {
     if (process.env.NODE_ENV === "development") {
-      const entry = this.formatLog("debug", message, meta, context, undefined, requestId);
+      const entry = this.formatLog(
+        "debug",
+        message,
+        meta,
+        context,
+        undefined,
+        requestId
+      );
       this.writeLog(entry);
     }
   }
@@ -147,7 +175,7 @@ class Logger {
   ): void {
     const level = statusCode >= 400 ? "error" : "info";
     const message = `API ${method} response - ${statusCode}`;
-    
+
     if (level === "error") {
       this.error(
         message,

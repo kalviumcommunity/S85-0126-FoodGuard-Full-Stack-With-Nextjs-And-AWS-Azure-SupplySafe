@@ -1,12 +1,12 @@
-"use client"
+"use client";
 
-import { AppShell } from '@/components/layout/app-shell'
-import { MetricsCard } from '@/components/dashboard/metrics-card'
-import { FoodMovementTimeline } from '@/components/dashboard/food-movement-timeline'
-import { HygieneComplianceStatus } from '@/components/dashboard/hygiene-compliance-status'
-import { AlertsViolations } from '@/components/dashboard/alerts-violations'
-import { RecentBatches } from '@/components/dashboard/recent-batches'
-import { LatestComplaints } from '@/components/dashboard/latest-complaints'
+import { AppShell } from "@/components/layout/app-shell";
+import { MetricsCard } from "@/components/dashboard/metrics-card";
+import { FoodMovementTimeline } from "@/components/dashboard/food-movement-timeline";
+import { HygieneComplianceStatus } from "@/components/dashboard/hygiene-compliance-status";
+import { AlertsViolations } from "@/components/dashboard/alerts-violations";
+import { RecentBatches } from "@/components/dashboard/recent-batches";
+import { LatestComplaints } from "@/components/dashboard/latest-complaints";
 import {
   Package,
   ChefHat,
@@ -14,8 +14,8 @@ import {
   AlertTriangle,
   TrendingUp,
   Users,
-  Train
-} from 'lucide-react'
+  Train,
+} from "lucide-react";
 
 export default function DFTSDashboard() {
   return (
@@ -114,5 +114,5 @@ export default function DFTSDashboard() {
         </div>
       </div>
     </AppShell>
-  )
+  );
 }

@@ -1,11 +1,24 @@
-'use client';
+"use client";
 
-import { useState, useEffect } from 'react';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
-import { Loader2, Database, CheckCircle, XCircle, AlertCircle, RefreshCw } from 'lucide-react';
-import { toast } from 'sonner';
+import { useState, useEffect } from "react";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import {
+  Loader2,
+  Database,
+  CheckCircle,
+  XCircle,
+  AlertCircle,
+  RefreshCw,
+} from "lucide-react";
+import { toast } from "sonner";
 
 interface DatabaseHealth {
   success: boolean;
@@ -35,12 +48,12 @@ export default function DatabaseHealthPage() {
   const fetchHealth = async () => {
     setIsLoading(true);
     try {
-      const response = await fetch('/api/database/health');
+      const response = await fetch("/api/database/health");
       const result = await response.json();
       setHealth(result);
     } catch (error) {
-      toast.error('Failed to fetch database health');
-      console.error('Health check error:', error);
+      toast.error("Failed to fetch database health");
+      console.error("Health check error:", error);
     } finally {
       setIsLoading(false);
     }
@@ -49,18 +62,18 @@ export default function DatabaseHealthPage() {
   const testConnection = async () => {
     setIsTestLoading(true);
     try {
-      const response = await fetch('/api/database/health', { method: 'POST' });
+      const response = await fetch("/api/database/health", { method: "POST" });
       const result = await response.json();
       setTestResult(result);
-      
+
       if (result.success) {
-        toast.success('Connection test successful');
+        toast.success("Connection test successful");
       } else {
-        toast.error('Connection test failed');
+        toast.error("Connection test failed");
       }
     } catch (error) {
-      toast.error('Failed to test connection');
-      console.error('Connection test error:', error);
+      toast.error("Failed to test connection");
+      console.error("Connection test error:", error);
     } finally {
       setIsTestLoading(false);
     }
@@ -87,7 +100,9 @@ export default function DatabaseHealthPage() {
 
   const getStatusBadge = (success: boolean) => {
     return success ? (
-      <Badge variant="default" className="bg-green-500">Connected</Badge>
+      <Badge variant="default" className="bg-green-500">
+        Connected
+      </Badge>
     ) : (
       <Badge variant="destructive">Disconnected</Badge>
     );
@@ -112,11 +127,21 @@ export default function DatabaseHealthPage() {
             onClick={() => setAutoRefresh(!autoRefresh)}
             className="flex items-center gap-2"
           >
-            <RefreshCw className={`h-4 w-4 ${autoRefresh ? 'animate-spin' : ''}`} />
+            <RefreshCw
+              className={`h-4 w-4 ${autoRefresh ? "animate-spin" : ""}`}
+            />
             Auto Refresh
           </Button>
-          <Button onClick={fetchHealth} disabled={isLoading} className="flex items-center gap-2">
-            {isLoading ? <Loader2 className="h-4 w-4 animate-spin" /> : <RefreshCw className="h-4 w-4" />}
+          <Button
+            onClick={fetchHealth}
+            disabled={isLoading}
+            className="flex items-center gap-2"
+          >
+            {isLoading ? (
+              <Loader2 className="h-4 w-4 animate-spin" />
+            ) : (
+              <RefreshCw className="h-4 w-4" />
+            )}
             Refresh
           </Button>
         </div>
@@ -126,12 +151,22 @@ export default function DatabaseHealthPage() {
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Overall Status</CardTitle>
-            {health ? getStatusIcon(health.success) : <AlertCircle className="h-4 w-4 text-yellow-500" />}
+            <CardTitle className="text-sm font-medium">
+              Overall Status
+            </CardTitle>
+            {health ? (
+              getStatusIcon(health.success)
+            ) : (
+              <AlertCircle className="h-4 w-4 text-yellow-500" />
+            )}
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">
-              {health ? getStatusBadge(health.success) : <Badge variant="outline">Checking...</Badge>}
+              {health ? (
+                getStatusBadge(health.success)
+              ) : (
+                <Badge variant="outline">Checking...</Badge>
+              )}
             </div>
             <p className="text-xs text-muted-foreground mt-1">
               Database connection status
@@ -146,11 +181,9 @@ export default function DatabaseHealthPage() {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">
-              {health?.latency ? `${health.latency}ms` : 'N/A'}
+              {health?.latency ? `${health.latency}ms` : "N/A"}
             </div>
-            <p className="text-xs text-muted-foreground mt-1">
-              Response time
-            </p>
+            <p className="text-xs text-muted-foreground mt-1">Response time</p>
           </CardContent>
         </Card>
 
@@ -161,7 +194,9 @@ export default function DatabaseHealthPage() {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">
-              {health ? new Date(health.timestamp).toLocaleTimeString() : 'Never'}
+              {health
+                ? new Date(health.timestamp).toLocaleTimeString()
+                : "Never"}
             </div>
             <p className="text-xs text-muted-foreground mt-1">
               Last health check
@@ -187,7 +222,9 @@ export default function DatabaseHealthPage() {
                   <div className="flex items-center gap-2">
                     {getStatusIcon(health.details.prismaConnection)}
                     <span className="text-sm">
-                      {health.details.prismaConnection ? 'Connected' : 'Disconnected'}
+                      {health.details.prismaConnection
+                        ? "Connected"
+                        : "Disconnected"}
                     </span>
                   </div>
                 </div>
@@ -196,7 +233,9 @@ export default function DatabaseHealthPage() {
                   <div className="flex items-center gap-2">
                     {getStatusIcon(health.details.directConnection)}
                     <span className="text-sm">
-                      {health.details.directConnection ? 'Connected' : 'Disconnected'}
+                      {health.details.directConnection
+                        ? "Connected"
+                        : "Disconnected"}
                     </span>
                   </div>
                 </div>
@@ -210,7 +249,9 @@ export default function DatabaseHealthPage() {
                 )}
                 {health.details.version && (
                   <div className="flex items-start justify-between">
-                    <span className="text-sm font-medium">PostgreSQL Version</span>
+                    <span className="text-sm font-medium">
+                      PostgreSQL Version
+                    </span>
                     <span className="text-sm text-muted-foreground text-right max-w-xs">
                       {health.details.version}
                     </span>
@@ -236,8 +277,8 @@ export default function DatabaseHealthPage() {
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
-            <Button 
-              onClick={testConnection} 
+            <Button
+              onClick={testConnection}
               disabled={isTestLoading}
               className="w-full"
             >
@@ -253,13 +294,17 @@ export default function DatabaseHealthPage() {
                 </>
               )}
             </Button>
-            
+
             {testResult && (
-              <div className={`p-4 rounded-lg ${testResult.success ? 'bg-green-50 border border-green-200' : 'bg-red-50 border border-red-200'}`}>
+              <div
+                className={`p-4 rounded-lg ${testResult.success ? "bg-green-50 border border-green-200" : "bg-red-50 border border-red-200"}`}
+              >
                 <div className="flex items-center gap-2 mb-2">
                   {getStatusIcon(testResult.success)}
                   <span className="font-medium">
-                    {testResult.success ? 'Connection Successful' : 'Connection Failed'}
+                    {testResult.success
+                      ? "Connection Successful"
+                      : "Connection Failed"}
                   </span>
                 </div>
                 <p className="text-sm text-muted-foreground">
@@ -282,9 +327,7 @@ export default function DatabaseHealthPage() {
           </CardHeader>
           <CardContent>
             <div className="bg-red-50 p-4 rounded-lg">
-              <p className="text-sm text-red-800">
-                {health.error}
-              </p>
+              <p className="text-sm text-red-800">{health.error}</p>
             </div>
           </CardContent>
         </Card>
@@ -321,7 +364,8 @@ export default function DatabaseHealthPage() {
           </div>
           <div className="bg-blue-50 p-4 rounded-lg">
             <p className="text-sm text-blue-800">
-              <strong>Tip:</strong> Check the README.md for detailed setup instructions and troubleshooting guides.
+              <strong>Tip:</strong> Check the README.md for detailed setup
+              instructions and troubleshooting guides.
             </p>
           </div>
         </CardContent>

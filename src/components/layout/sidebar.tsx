@@ -1,8 +1,8 @@
-"use client"
+"use client";
 
-import Link from 'next/link'
-import { usePathname } from 'next/navigation'
-import { cn } from '@/lib/utils'
+import Link from "next/link";
+import { usePathname } from "next/navigation";
+import { cn } from "@/lib/utils";
 import {
   LayoutDashboard,
   Package,
@@ -14,28 +14,36 @@ import {
   Menu,
   X,
   Train,
-  UserCheck
-} from 'lucide-react'
+  UserCheck,
+} from "lucide-react";
 
 const navigation = [
-  { name: 'Dashboard', href: '/dashboard', icon: LayoutDashboard },
-  { name: 'Traceability', href: '/traceability', icon: Package },
-  { name: 'Batches', href: '/batches', icon: Package },
-  { name: 'Hygiene Reports', href: '/hygiene', icon: FileText },
-  { name: 'Complaints', href: '/complaints', icon: AlertTriangle },
-  { name: 'Alerts', href: '/alerts', icon: Bell },
-  { name: 'Users', href: '/users', icon: Users },
-  { name: 'Settings', href: '/settings', icon: Settings },
-]
+  { name: "Dashboard", href: "/dashboard", icon: LayoutDashboard },
+  { name: "Traceability", href: "/traceability", icon: Package },
+  { name: "Batches", href: "/batches", icon: Package },
+  { name: "Hygiene Reports", href: "/hygiene", icon: FileText },
+  { name: "Complaints", href: "/complaints", icon: AlertTriangle },
+  { name: "Alerts", href: "/alerts", icon: Bell },
+  { name: "Users", href: "/users", icon: Users },
+  { name: "Settings", href: "/settings", icon: Settings },
+];
 
-export function Sidebar({ collapsed, onToggle }: { collapsed: boolean; onToggle: (collapsed: boolean) => void }) {
-  const pathname = usePathname()
+export function Sidebar({
+  collapsed,
+  onToggle,
+}: {
+  collapsed: boolean;
+  onToggle: (collapsed: boolean) => void;
+}) {
+  const pathname = usePathname();
 
   return (
-    <div className={cn(
-      "fixed left-0 top-0 h-screen bg-[#0F2A44] border-r border-gray-200 transition-all duration-300 z-50",
-      collapsed ? "w-16" : "w-64"
-    )}>
+    <div
+      className={cn(
+        "fixed left-0 top-0 h-screen bg-[#0F2A44] border-r border-gray-200 transition-all duration-300 z-50",
+        collapsed ? "w-16" : "w-64"
+      )}
+    >
       <div className="flex flex-col h-full">
         <div className="flex items-center justify-between p-4 border-b border-gray-700">
           {!collapsed && (
@@ -53,13 +61,17 @@ export function Sidebar({ collapsed, onToggle }: { collapsed: boolean; onToggle:
             onClick={() => onToggle(!collapsed)}
             className="text-gray-400 hover:text-white transition-colors"
           >
-            {collapsed ? <Menu className="w-5 h-5" /> : <X className="w-5 h-5" />}
+            {collapsed ? (
+              <Menu className="w-5 h-5" />
+            ) : (
+              <X className="w-5 h-5" />
+            )}
           </button>
         </div>
 
         <nav className="flex-1 p-4 space-y-2">
           {navigation.map((item) => {
-            const isActive = pathname === item.href
+            const isActive = pathname === item.href;
             return (
               <Link
                 key={item.name}
@@ -72,9 +84,11 @@ export function Sidebar({ collapsed, onToggle }: { collapsed: boolean; onToggle:
                 )}
               >
                 <item.icon className="w-5 h-5 flex-shrink-0" />
-                {!collapsed && <span className="text-sm font-medium">{item.name}</span>}
+                {!collapsed && (
+                  <span className="text-sm font-medium">{item.name}</span>
+                )}
               </Link>
-            )
+            );
           })}
         </nav>
 
@@ -93,5 +107,5 @@ export function Sidebar({ collapsed, onToggle }: { collapsed: boolean; onToggle:
         </div>
       </div>
     </div>
-  )
+  );
 }

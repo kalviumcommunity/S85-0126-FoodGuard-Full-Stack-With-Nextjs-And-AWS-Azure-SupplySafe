@@ -1,5 +1,5 @@
-import { Pool } from 'pg';
-import { prisma } from './prisma';
+import { Pool } from "pg";
+import { prisma } from "./prisma";
 
 export interface DatabaseHealthResult {
   success: boolean;
@@ -31,9 +31,9 @@ export class DatabaseHealthChecker {
     if (!this.pool) {
       const databaseUrl = process.env.DATABASE_URL;
       if (!databaseUrl) {
-        throw new Error('DATABASE_URL environment variable is not set');
+        throw new Error("DATABASE_URL environment variable is not set");
       }
-      
+
       this.pool = new Pool({
         connectionString: databaseUrl,
         max: 1,
@@ -66,7 +66,9 @@ export class DatabaseHealthChecker {
       // Test direct PostgreSQL connection
       const pool = this.getDirectPool();
       const directStartTime = Date.now();
-      const directResult = await pool.query('SELECT version(), NOW() as server_time');
+      const directResult = await pool.query(
+        "SELECT version(), NOW() as server_time"
+      );
       details.directConnection = true;
       const directLatency = Date.now() - directStartTime;
 
@@ -78,17 +80,17 @@ export class DatabaseHealthChecker {
         version: directResult.rows[0]?.version,
       };
 
-      console.log('Database health check passed:', {
+      console.log("Database health check passed:", {
         latency: result.latency,
         prismaLatency,
         directLatency,
       });
-
     } catch (error) {
-      result.error = error instanceof Error ? error.message : 'Unknown database error';
+      result.error =
+        error instanceof Error ? error.message : "Unknown database error";
       result.details = details;
-      
-      console.error('Database health check failed:', {
+
+      console.error("Database health check failed:", {
         error: result.error,
         details,
       });
@@ -97,10 +99,13 @@ export class DatabaseHealthChecker {
     return result;
   }
 
-  public async testConnection(): Promise<{ success: boolean; message: string }> {
+  public async testConnection(): Promise<{
+    success: boolean;
+    message: string;
+  }> {
     try {
       const health = await this.checkHealth();
-      
+
       if (health.success) {
         return {
           success: true,
@@ -115,7 +120,7 @@ export class DatabaseHealthChecker {
     } catch (error) {
       return {
         success: false,
-        message: `Connection test error: ${error instanceof Error ? error.message : 'Unknown error'}`,
+        message: `Connection test error: ${error instanceof Error ? error.message : "Unknown error"}`,
       };
     }
   }
@@ -134,11 +139,11 @@ export const dbHealthChecker = DatabaseHealthChecker.getInstance();
 // Utility function for quick connection testing
 export async function testDatabaseConnection(): Promise<void> {
   const result = await dbHealthChecker.testConnection();
-  
+
   if (result.success) {
-    console.log('✅', result.message);
+    console.log("✅", result.message);
   } else {
-    console.error('❌', result.message);
+    console.error("❌", result.message);
     throw new Error(result.message);
   }
 }
