@@ -3,6 +3,10 @@ import { prisma } from "@/lib/prisma";
 import { z } from "zod";
 import QRCode from "qrcode";
 
+// Force dynamic rendering
+export const dynamic = 'force-dynamic';
+export const runtime = 'nodejs';
+
 const createBatchSchema = z.object({
   productId: z.string(),
   supplierId: z.string(),
