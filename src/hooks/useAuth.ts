@@ -1,4 +1,4 @@
-import { useAuthContext } from "@/context/AuthContext";
+import { useAuth as useAuthContext } from "@/context/AuthContext";
 
 export function useAuth() {
   const { user, login, logout } = useAuthContext();

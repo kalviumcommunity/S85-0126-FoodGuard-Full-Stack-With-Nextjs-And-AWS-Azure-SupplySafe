@@ -10,12 +10,13 @@ const updateBatchSchema = z.object({
 });
 
 export async function GET(
-  request: NextRequest,
-  { params }: { params: { id: string } }
+  _request: NextRequest,
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const { id } = await params;
     const batch = await prisma.batch.findUnique({
-      where: { id: params.id },
+      where: { id },
       include: {
         product: {
           include: {
@@ -47,14 +48,15 @@ export async function GET(
 
 export async function PUT(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const { id } = await params;
     const body = await request.json();
     const validatedData = updateBatchSchema.parse(body);
 
     const batch = await prisma.batch.update({
-      where: { id: params.id },
+      where: { id },
       data: validatedData,
       include: {
         product: {
@@ -70,7 +72,7 @@ export async function PUT(
     console.error('Error updating batch:', error);
     if (error instanceof z.ZodError) {
       return NextResponse.json(
-        { error: 'Validation failed', details: error.errors },
+        { error: 'Validation failed', details: error.issues },
         { status: 400 }
       );
     }
@@ -82,12 +84,13 @@ export async function PUT(
 }
 
 export async function DELETE(
-  request: NextRequest,
-  { params }: { params: { id: string } }
+  _request: NextRequest,
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const { id } = await params;
     await prisma.batch.delete({
-      where: { id: params.id }
+      where: { id }
     });
 
     return NextResponse.json({ message: 'Batch deleted successfully' });
