@@ -1,11 +1,29 @@
 "use client"
 
+import { useState } from 'react'
+import { useRouter } from 'next/navigation'
 import { Search, Bell, User, LogOut } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Badge } from '@/components/ui/badge'
+import { useAuth } from '@/context/AuthContext'
 
 export function Header({ sidebarCollapsed }: { sidebarCollapsed: boolean }) {
+  const { logout } = useAuth();
+  const router = useRouter();
+  const [isLoggingOut, setIsLoggingOut] = useState(false);
+
+  const handleLogout = async () => {
+    setIsLoggingOut(true);
+    try {
+      await logout(router);
+    } catch (error) {
+      console.error("Logout failed:", error);
+    } finally {
+      setIsLoggingOut(false);
+    }
+  };
+
   return (
     <header className={`fixed top-0 right-0 h-16 bg-white border-b border-gray-200 z-40 transition-all duration-300 ${
       sidebarCollapsed ? 'left-16' : 'left-64'
@@ -47,8 +65,14 @@ export function Header({ sidebarCollapsed }: { sidebarCollapsed: boolean }) {
             <div className="w-10 h-10 bg-[#0F2A44] rounded-full flex items-center justify-center">
               <User className="w-5 h-5 text-white" />
             </div>
-            <Button variant="ghost" size="icon">
-              <LogOut className="w-4 h-4 text-gray-600" />
+            <Button 
+              variant="ghost" 
+              size="icon" 
+              onClick={handleLogout}
+              disabled={isLoggingOut}
+              title={isLoggingOut ? "Logging out..." : "Logout"}
+            >
+              <LogOut className={`w-4 h-4 text-gray-600 ${isLoggingOut ? 'animate-spin' : ''}`} />
             </Button>
           </div>
         </div>

@@ -1,0 +1,127 @@
+/* Isolated button styles - No interference from global CSS */
+
+.dashboard-button {
+  display: flex;
+  align-items: center;
+  width: 100%;
+  text-align: left;
+  padding: 0.75rem 1rem;
+  border-radius: 0.5rem;
+  font-size: 0.875rem;
+  font-weight: 500;
+  transition: all 0.15s ease-in-out;
+  cursor: pointer;
+  border: none;
+  outline: none;
+}
+
+.dashboard-button:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+}
+
+.dashboard-button:active {
+  transform: translateY(0);
+  box-shadow: 0 2px 4px -1px rgba(0, 0, 0, 0.1);
+}
+
+/* Blue button */
+.dashboard-button.blue {
+  background-color: #EFF6FF;
+  color: #1D4ED8;
+}
+
+.dashboard-button.blue:hover {
+  background-color: #DBEAFE;
+}
+
+.dashboard-button.blue svg {
+  color: #1D4ED8;
+}
+
+/* Green button */
+.dashboard-button.green {
+  background-color: #F0FDF4;
+  color: #15803D;
+}
+
+.dashboard-button.green:hover {
+  background-color: #D1FAE5;
+}
+
+.dashboard-button.green svg {
+  color: #15803D;
+}
+
+/* Purple button */
+.dashboard-button.purple {
+  background-color: #F3E8FF;
+  color: #6D28D9;
+}
+
+.dashboard-button.purple:hover {
+  background-color: #E9D5FF;
+}
+
+.dashboard-button.purple svg {
+  color: #6D28D9;
+}
+
+/* Orange button */
+.dashboard-button.orange {
+  background-color: #FFF7ED;
+  color: #C2410C;
+}
+
+.dashboard-button.orange:hover {
+  background-color: #FED7AA;
+}
+
+.dashboard-button.orange svg {
+  color: #C2410C;
+}
+
+/* Gray button */
+.dashboard-button.gray {
+  background-color: #F9FAFB;
+  color: #374151;
+}
+
+.dashboard-button.gray:hover {
+  background-color: #F3F4F6;
+}
+
+.dashboard-button.gray svg {
+  color: #374151;
+}
+
+/* Icon styling */
+.dashboard-button svg {
+  width: 1rem;
+  height: 1rem;
+  margin-right: 0.5rem;
+  flex-shrink: 0;
+}
+
+/* Fix for ghost variant buttons (like logout) */
+button[class*="hover:bg-gray-100"] {
+  background-color: #F9FAFB !important;
+  color: #374151 !important;
+}
+
+button[class*="hover:bg-gray-100"]:hover {
+  background-color: #F3F4F6 !important;
+}
+
+button[class*="hover:bg-gray-100"] svg {
+  color: #374151 !important;
+}
+
+/* Fix for all ghost buttons to ensure text visibility */
+button[class*="text-gray-600"] {
+  color: #374151 !important;
+}
+
+button[class*="text-gray-600"] svg {
+  color: #374151 !important;
+}

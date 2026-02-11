@@ -1,22 +1,8 @@
 import * as jose from "jose";
-import { getJwtSecret, getRefreshSecret } from "./secrets-init";
 
-// JWT Configuration - will be fetched from secrets
-let JWT_SECRET: string = "";
-let REFRESH_SECRET: string = "";
-
-// Initialize secrets
-const initializeJwtSecrets = async () => {
-  if (!JWT_SECRET) {
-    JWT_SECRET =
-      (await getJwtSecret()) || "super_secure_secret_min_32_characters_long";
-  }
-  if (!REFRESH_SECRET) {
-    REFRESH_SECRET =
-      (await getRefreshSecret()) ||
-      "super_secure_refresh_secret_min_32_characters_long";
-  }
-};
+// JWT Configuration - using environment variables directly
+const JWT_SECRET = process.env.JWT_SECRET || "super_secure_secret_min_32_characters_long";
+const REFRESH_SECRET = process.env.REFRESH_SECRET || "super_secure_refresh_secret_min_32_characters_long";
 
 // Token expiration times
 export const TOKEN_EXPIRY = {
@@ -43,7 +29,6 @@ export async function generateToken(
   payload: Omit<JWTPayload, "type" | "iat" | "exp">,
   type: TokenType
 ): Promise<string> {
-  await initializeJwtSecrets();
   const secret = type === "access" ? JWT_SECRET : REFRESH_SECRET;
   const expiration =
     type === "access" ? TOKEN_EXPIRY.ACCESS_TOKEN : TOKEN_EXPIRY.REFRESH_TOKEN;
@@ -62,7 +47,6 @@ export async function verifyToken(
   token: string,
   type: TokenType = "access"
 ): Promise<JWTPayload> {
-  await initializeJwtSecrets();
   const secret = type === "access" ? JWT_SECRET : REFRESH_SECRET;
   const secretKey = new TextEncoder().encode(secret);
 

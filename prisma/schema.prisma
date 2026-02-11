@@ -50,6 +50,7 @@ model Product {
   createdAt   DateTime    @default(now())
   updatedAt   DateTime    @updatedAt
   orderItems  OrderItem[]
+  batches     Batch[]
   supplier    Supplier    @relation(fields: [supplierId], references: [id], onDelete: Cascade)
 
   @@map("products")
@@ -109,4 +110,55 @@ model File {
   createdAt DateTime @default(now())
 
   @@map("files")
+}
+
+model Batch {
+  id               String     @id @default(uuid())
+  batchNumber      String     @unique
+  productId        String
+  supplierId       String
+  manufacturingDate DateTime
+  expiryDate       DateTime
+  storageConditions String?
+  quantity         Float
+  unit             String
+  qrCodeUrl        String?
+  currentLocation  String?
+  status           BatchStatus @default(ACTIVE)
+  createdAt        DateTime   @default(now())
+  updatedAt        DateTime   @updatedAt
+  movements        BatchMovement[]
+  product          Product    @relation(fields: [productId], references: [id], onDelete: Cascade)
+
+  @@map("batches")
+}
+
+model BatchMovement {
+  id          String           @id @default(uuid())
+  batchId     String
+  fromLocation String?
+  toLocation   String
+  quantity     Float
+  unit         String
+  movementType MovementType
+  notes        String?
+  createdAt    DateTime         @default(now())
+  batch        Batch            @relation(fields: [batchId], references: [id], onDelete: Cascade)
+
+  @@map("batch_movements")
+}
+
+enum BatchStatus {
+  ACTIVE
+  EXPIRED
+  RECALLED
+  DISPOSED
+}
+
+enum MovementType {
+  RECEIVED
+  TRANSFERRED
+  USED
+  DISPOSED
+  RECALLED
 }

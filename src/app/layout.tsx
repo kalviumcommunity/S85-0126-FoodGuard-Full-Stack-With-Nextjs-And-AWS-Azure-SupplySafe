@@ -5,20 +5,22 @@ import { UIProvider } from "@/context/UIContext";
 import { Toaster } from "sonner";
 import "./globals.css";
 
-const geistSans = Geist({
-  variable: "--font-geist-sans",
+// Load fonts with proper fallback
+const inter = Geist({
   subsets: ["latin"],
+  variable: "--font-geist-sans",
+  display: "swap",
 });
 
 const geistMono = Geist_Mono({
-  variable: "--font-geist-mono",
   subsets: ["latin"],
+  variable: "--font-geist-mono",
+  display: "swap",
 });
 
 export const metadata: Metadata = {
   title: "SupplySafe DFTS - Digital Food Traceability System",
-  description:
-    "Digital Food Traceability System for Indian Railway Catering Services - Ensuring food safety, hygiene compliance, and complete traceability across the food supply chain.",
+  description: "Digital Food Traceability System for Indian Railway Catering Services - Ensuring food safety, hygiene compliance, and complete traceability across the food supply chain with real-time monitoring and blockchain verification.",
 };
 
 export default function RootLayout({
@@ -28,12 +30,9 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
-      <body
-        className={`${geistSans.variable} ${geistMono.variable} antialiased`}
-      >
+      <body className={`${inter.className} ${geistMono.variable} antialiased`}>
         <AuthProvider>
           <UIProvider>
-            {children}
             <Toaster
               position="top-right"
               richColors
@@ -41,6 +40,9 @@ export default function RootLayout({
               expand={false}
               duration={4000}
             />
+            <main className="min-h-screen">
+              {children}
+            </main>
           </UIProvider>
         </AuthProvider>
       </body>
