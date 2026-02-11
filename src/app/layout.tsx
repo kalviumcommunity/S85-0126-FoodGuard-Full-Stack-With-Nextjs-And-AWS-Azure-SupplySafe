@@ -20,7 +20,8 @@ const geistMono = Geist_Mono({
 
 export const metadata: Metadata = {
   title: "SupplySafe DFTS - Digital Food Traceability System",
-  description: "Digital Food Traceability System for Indian Railway Catering Services - Ensuring food safety, hygiene compliance, and complete traceability across the food supply chain with real-time monitoring and blockchain verification.",
+  description:
+    "Digital Food Traceability System for Indian Railway Catering Services - Ensuring food safety, hygiene compliance, and complete traceability across the food supply chain with real-time monitoring and blockchain verification.",
 };
 
 export default function RootLayout({
@@ -40,9 +41,7 @@ export default function RootLayout({
               expand={false}
               duration={4000}
             />
-            <main className="min-h-screen">
-              {children}
-            </main>
+            <main className="min-h-screen">{children}</main>
           </UIProvider>
         </AuthProvider>
       </body>

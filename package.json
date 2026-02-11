@@ -20,7 +20,7 @@
     "db:studio": "prisma studio",
     "db:generate": "prisma generate",
     "db:push": "prisma db push",
-    "test": "jest",
+    "test": "jest --config jest.config.js",
     "test:watch": "jest --watch",
     "test:coverage": "jest --coverage",
     "test:smoke": "jest --testPathPattern=__smoke_tests__ --runInBand"

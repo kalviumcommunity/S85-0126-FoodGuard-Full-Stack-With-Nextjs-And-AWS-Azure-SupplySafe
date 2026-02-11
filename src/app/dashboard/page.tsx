@@ -1,10 +1,10 @@
-"use client"
+"use client";
 
-import './buttons.css'
-import { AppShell } from '@/components/layout/app-shell'
-import { MetricsCard } from '@/components/dashboard/metrics-card'
-import { getCurrentUser } from '@/lib/pure-custom-auth-v2'
-import { useState, useEffect } from 'react'
+import "./buttons.css";
+import { AppShell } from "@/components/layout/app-shell";
+import { MetricsCard } from "@/components/dashboard/metrics-card";
+import { getCurrentUser } from "@/lib/pure-custom-auth-v2";
+import { useState, useEffect } from "react";
 import {
   Package,
   Shield,
@@ -20,7 +20,7 @@ import {
   Clock,
   CheckCircle,
   ShoppingCart,
-} from 'lucide-react'
+} from "lucide-react";
 
 interface DashboardStats {
   totalUsers?: number;
@@ -51,49 +51,54 @@ interface Activity {
 }
 
 export default function DashboardPage() {
-  const [user, setUser] = useState<any>(null)
-  const [loading, setLoading] = useState(true)
-  const [authError, setAuthError] = useState<string | null>(null)
-  const [stats, setStats] = useState<DashboardStats | null>(null)
-  const [activities, setActivities] = useState<Activity[]>([])
+  const [user, setUser] = useState<any>(null);
+  const [loading, setLoading] = useState(true);
+  const [authError, setAuthError] = useState<string | null>(null);
+  const [stats, setStats] = useState<DashboardStats | null>(null);
+  const [activities, setActivities] = useState<Activity[]>([]);
 
   useEffect(() => {
     // Check authentication on mount
-    const authUser = getCurrentUser()
+    const authUser = getCurrentUser();
     if (authUser.isAuthenticated && authUser.user) {
-      setUser(authUser.user)
-      fetchDashboardData()
+      setUser(authUser.user);
+      fetchDashboardData();
     } else {
-      setAuthError('Please login to access the dashboard')
-      setLoading(false)
+      setAuthError("Please login to access the dashboard");
+      setLoading(false);
     }
-  }, [])
+  }, []);
 
   const fetchDashboardData = async () => {
     try {
-      setLoading(true)
-      
+      setLoading(true);
+
       // Fetch actual data from database
-      const DB_URL = 'https://mdrqntpedztxxfcxsbxk.supabase.co/rest/v1'
-      const DB_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1kcnFudHBlZHp0eHhmY3hzYnhrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzA2MjYxMDIsImV4cCI6MjA4NjIwMjEwMn0.N9MxcjKxuYho3dGOlMcd0fF3vtjjq-UTYCPwQLJ5hG0'
-      
+      const DB_URL = "https://mdrqntpedztxxfcxsbxk.supabase.co/rest/v1";
+      const DB_KEY =
+        "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1kcnFudHBlZHp0eHhmY3hzYnhrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzA2MjYxMDIsImV4cCI6MjA4NjIwMjEwMn0.N9MxcjKxuYho3dGOlMcd0fF3vtjjq-UTYCPwQLJ5hG0";
+
       // Fetch users statistics
       const usersResponse = await fetch(`${DB_URL}/users`, {
         headers: {
-          'apikey': DB_KEY,
-          'Authorization': `Bearer ${DB_KEY}`
-        }
-      })
-      
-      const allUsers = await usersResponse.json()
-      
+          apikey: DB_KEY,
+          Authorization: `Bearer ${DB_KEY}`,
+        },
+      });
+
+      const allUsers = await usersResponse.json();
+
       // Calculate real statistics
-      const totalUsers = allUsers.length
-      const totalSuppliers = allUsers.filter((u: any) => u.role === 'SUPPLIER').length
-      const verifiedSuppliers = totalSuppliers // All suppliers are considered verified for now
-      const regularUsers = allUsers.filter((u: any) => u.role === 'USER').length
-      const admins = allUsers.filter((u: any) => u.role === 'ADMIN').length
-      
+      const totalUsers = allUsers.length;
+      const totalSuppliers = allUsers.filter(
+        (u: any) => u.role === "SUPPLIER"
+      ).length;
+      const verifiedSuppliers = totalSuppliers; // All suppliers are considered verified for now
+      const regularUsers = allUsers.filter(
+        (u: any) => u.role === "USER"
+      ).length;
+      const admins = allUsers.filter((u: any) => u.role === "ADMIN").length;
+
       const realStats = {
         totalUsers,
         totalSuppliers,
@@ -107,19 +112,22 @@ export default function DashboardPage() {
         kitchensOnline: totalSuppliers, // Mock: each supplier has a kitchen
         hygieneScore: "94.2%",
         openComplaints: 0, // Will be implemented when complaints table exists
-        pendingDeliveries: 0 // Will be implemented when orders table exists
-      }
-      
+        pendingDeliveries: 0, // Will be implemented when orders table exists
+      };
+
       // Create real activities based on recent users
-      const realActivities = allUsers.slice(-5).reverse().map((user: any, index: number) => ({
-        id: user.id,
-        type: "user",
-        title: `New ${user.role.toLowerCase()} registered`,
-        description: `${user.name} joined the system`,
-        timestamp: user.created_at,
-        status: "success"
-      }))
-      
+      const realActivities = allUsers
+        .slice(-5)
+        .reverse()
+        .map((user: any, index: number) => ({
+          id: user.id,
+          type: "user",
+          title: `New ${user.role.toLowerCase()} registered`,
+          description: `${user.name} joined the system`,
+          timestamp: user.created_at,
+          status: "success",
+        }));
+
       // Add some system activities
       realActivities.unshift({
         id: "system-1",
@@ -127,13 +135,13 @@ export default function DashboardPage() {
         title: "System Status Update",
         description: "All systems operational",
         timestamp: new Date().toISOString(),
-        status: "success"
-      })
-      
-      setStats(realStats)
-      setActivities(realActivities)
+        status: "success",
+      });
+
+      setStats(realStats);
+      setActivities(realActivities);
     } catch (error) {
-      console.error('Failed to fetch dashboard data:', error)
+      console.error("Failed to fetch dashboard data:", error);
       // Fallback to mock data if database fails
       const fallbackStats = {
         totalUsers: 0,
@@ -148,22 +156,22 @@ export default function DashboardPage() {
         kitchensOnline: 0,
         hygieneScore: "94.2%",
         openComplaints: 0,
-        pendingDeliveries: 0
-      }
-      
-      setStats(fallbackStats)
-      setActivities([])
+        pendingDeliveries: 0,
+      };
+
+      setStats(fallbackStats);
+      setActivities([]);
     } finally {
-      setLoading(false)
+      setLoading(false);
     }
-  }
+  };
 
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <div className="text-lg">Loading dashboard...</div>
       </div>
-    )
+    );
   }
 
   if (authError) {
@@ -172,55 +180,75 @@ export default function DashboardPage() {
         <div className="bg-red-50 border border-red-200 rounded-lg p-8 max-w-md">
           <div className="text-center">
             <AlertTriangle className="w-12 h-12 text-red-600 mx-auto mb-4" />
-            <h2 className="text-lg font-semibold text-red-800 mb-2">Authentication Error</h2>
+            <h2 className="text-lg font-semibold text-red-800 mb-2">
+              Authentication Error
+            </h2>
             <p className="text-red-600">{authError}</p>
             <div className="mt-4">
-              <a href="/login" className="bg-red-600 text-white px-4 py-2 rounded-md hover:bg-red-700 transition-colors">
+              <a
+                href="/login"
+                className="bg-red-600 text-white px-4 py-2 rounded-md hover:bg-red-700 transition-colors"
+              >
                 Go to Login
               </a>
             </div>
           </div>
         </div>
       </div>
-    )
+    );
   }
 
   if (!user) {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <div className="text-center">
-          <h2 className="text-lg font-semibold text-gray-800 mb-2">User not found</h2>
-          <a href="/login" className="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 transition-colors">
+          <h2 className="text-lg font-semibold text-gray-800 mb-2">
+            User not found
+          </h2>
+          <a
+            href="/login"
+            className="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 transition-colors"
+          >
             Go to Login
           </a>
         </div>
       </div>
-    )
+    );
   }
 
-  const isAdmin = user?.role === 'ADMIN'
-  const isSupplier = user?.role === 'SUPPLIER'
-  const isUser = user?.role === 'USER'
+  const isAdmin = user?.role === "ADMIN";
+  const isSupplier = user?.role === "SUPPLIER";
+  const isUser = user?.role === "USER";
 
   const getActivityIcon = (type: string) => {
     switch (type) {
-      case 'order': return Package
-      case 'supplier': return Truck
-      case 'user': return Users
-      default: return Activity
+      case "order":
+        return Package;
+      case "supplier":
+        return Truck;
+      case "user":
+        return Users;
+      default:
+        return Activity;
     }
-  }
+  };
 
   const getStatusColor = (status: string) => {
     switch (status) {
-      case 'success': return 'bg-green-500'
-      case 'warning': return 'bg-amber-500'
-      case 'error': return 'bg-red-500'
-      case 'info': return 'bg-blue-500'
-      case 'primary': return 'bg-indigo-500'
-      default: return 'bg-gray-500'
+      case "success":
+        return "bg-green-500";
+      case "warning":
+        return "bg-amber-500";
+      case "error":
+        return "bg-red-500";
+      case "info":
+        return "bg-blue-500";
+      case "primary":
+        return "bg-indigo-500";
+      default:
+        return "bg-gray-500";
     }
-  }
+  };
 
   return (
     <AppShell>
@@ -231,7 +259,10 @@ export default function DashboardPage() {
             Welcome back, {user?.name}!
           </h1>
           <p className="text-gray-600 mt-1">
-            You are logged in as a <span className="font-semibold capitalize">{user?.role?.toLowerCase()}</span>
+            You are logged in as a{" "}
+            <span className="font-semibold capitalize">
+              {user?.role?.toLowerCase()}
+            </span>
           </p>
         </div>
 
@@ -273,7 +304,7 @@ export default function DashboardPage() {
               />
             </>
           )}
-          
+
           {isSupplier && (
             <>
               <MetricsCard
@@ -310,7 +341,7 @@ export default function DashboardPage() {
               />
             </>
           )}
-          
+
           {isUser && (
             <>
               <MetricsCard
@@ -358,12 +389,19 @@ export default function DashboardPage() {
             </h3>
             <div className="space-y-3">
               {activities.slice(0, 5).map((activity, index) => {
-                const Icon = getActivityIcon(activity.type)
-                const uniqueKey = activity.id || `${activity.type}-${index}-${activity.timestamp}`
+                const Icon = getActivityIcon(activity.type);
+                const uniqueKey =
+                  activity.id ||
+                  `${activity.type}-${index}-${activity.timestamp}`;
                 return (
-                  <div key={uniqueKey} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                  <div
+                    key={uniqueKey}
+                    className="flex items-center justify-between p-3 bg-gray-50 rounded-lg"
+                  >
                     <div className="flex items-center space-x-3">
-                      <div className={`w-2 h-2 ${getStatusColor(activity.status)} rounded-full`}></div>
+                      <div
+                        className={`w-2 h-2 ${getStatusColor(activity.status)} rounded-full`}
+                      ></div>
                       <Icon className="w-4 h-4 text-gray-600" />
                       <div>
                         <p className="text-sm font-medium text-gray-900">
@@ -375,7 +413,7 @@ export default function DashboardPage() {
                       </div>
                     </div>
                   </div>
-                )
+                );
               })}
               {activities.length === 0 && (
                 <p className="text-sm text-gray-500 text-center py-4">
@@ -387,7 +425,9 @@ export default function DashboardPage() {
 
           {/* Quick Actions */}
           <div className="bg-white rounded-lg border border-gray-200 p-6">
-            <h3 className="text-lg font-semibold mb-4 text-gray-900">Quick Actions</h3>
+            <h3 className="text-lg font-semibold mb-4 text-gray-900">
+              Quick Actions
+            </h3>
             <div className="space-y-2">
               {isAdmin && (
                 <>
@@ -409,7 +449,7 @@ export default function DashboardPage() {
                   </button>
                 </>
               )}
-              
+
               {isSupplier && (
                 <>
                   <button className="dashboard-button blue">
@@ -426,7 +466,7 @@ export default function DashboardPage() {
                   </button>
                 </>
               )}
-              
+
               {isUser && (
                 <>
                   <button className="dashboard-button blue">
@@ -481,5 +521,5 @@ export default function DashboardPage() {
         )}
       </div>
     </AppShell>
-  )
+  );
 }

@@ -1,8 +1,11 @@
 import * as jose from "jose";
 
 // JWT Configuration - using environment variables directly
-const JWT_SECRET = process.env.JWT_SECRET || "super_secure_secret_min_32_characters_long";
-const REFRESH_SECRET = process.env.REFRESH_SECRET || "super_secure_refresh_secret_min_32_characters_long";
+const JWT_SECRET =
+  process.env.JWT_SECRET || "super_secure_secret_min_32_characters_long";
+const REFRESH_SECRET =
+  process.env.REFRESH_SECRET ||
+  "super_secure_refresh_secret_min_32_characters_long";
 
 // Token expiration times
 export const TOKEN_EXPIRY = {

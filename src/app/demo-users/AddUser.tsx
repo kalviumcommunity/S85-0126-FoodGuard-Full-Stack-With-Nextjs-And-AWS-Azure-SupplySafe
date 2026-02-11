@@ -18,11 +18,7 @@ export default function AddUser() {
       email,
     };
 
-    mutate(
-      "/api/demo-users",
-      [...(data || []), optimisticUser],
-      false
-    );
+    mutate("/api/demo-users", [...(data || []), optimisticUser], false);
 
     // Actual API call
     try {

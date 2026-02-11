@@ -7,7 +7,7 @@ import { NextRequest } from "next/server";
 
 /**
  * Recent Activity API
- * 
+ *
  * Returns recent activity based on user role:
  * - ADMIN: System-wide recent activity
  * - SUPPLIER: Supplier-specific activity
@@ -19,12 +19,16 @@ export async function GET(req: NextRequest) {
     const token = getAccessToken(req);
 
     if (!token) {
-      return sendError("Authentication required", ERROR_CODES.UNAUTHORIZED, 401);
+      return sendError(
+        "Authentication required",
+        ERROR_CODES.UNAUTHORIZED,
+        401
+      );
     }
 
     // Verify token and get user info
     const decoded = await verifyToken(token, "access");
-    
+
     // Fetch user
     const user = await prisma.user.findUnique({
       where: { id: decoded.userId },
@@ -61,7 +65,7 @@ export async function GET(req: NextRequest) {
 
       // Transform to activity format with guaranteed unique IDs
       activities = [
-        ...recentOrders.map(order => ({
+        ...recentOrders.map((order) => ({
           id: `order-${order.id || Math.random().toString(36).substr(2, 9)}`,
           type: "order",
           title: `Order #${order.orderNumber} ${order.status.toLowerCase()}`,
@@ -69,15 +73,15 @@ export async function GET(req: NextRequest) {
           timestamp: order.createdAt,
           status: getOrderStatusColor(order.status),
         })),
-        ...recentSuppliers.map(supplier => ({
+        ...recentSuppliers.map((supplier) => ({
           id: `supplier-${supplier.id || Math.random().toString(36).substr(2, 9)}`,
           type: "supplier",
-          title: `New supplier registered`,
+          title: "New supplier registered",
           description: `${supplier.name} - ${formatTimeAgo(supplier.createdAt)}`,
           timestamp: supplier.createdAt,
           status: supplier.verified ? "success" : "warning",
         })),
-        ...recentUsers.map(user => ({
+        ...recentUsers.map((user) => ({
           id: `user-${user.id || Math.random().toString(36).substr(2, 9)}`,
           type: "user",
           title: `New ${user.role.toLowerCase()} registered`,
@@ -85,8 +89,12 @@ export async function GET(req: NextRequest) {
           timestamp: user.createdAt,
           status: "info",
         })),
-      ].sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime())
-       .slice(0, 10);
+      ]
+        .sort(
+          (a, b) =>
+            new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime()
+        )
+        .slice(0, 10);
     } else if (user.role === "SUPPLIER") {
       // Supplier sees their activity
       const supplier = await prisma.supplier.findFirst({
@@ -113,7 +121,7 @@ export async function GET(req: NextRequest) {
           },
         });
 
-        activities = recentOrders.map(order => ({
+        activities = recentOrders.map((order) => ({
           id: `supplier-order-${order.id || Math.random().toString(36).substr(2, 9)}`,
           type: "order",
           title: `Order #${order.orderNumber} ${order.status.toLowerCase()}`,
@@ -143,14 +151,14 @@ export async function GET(req: NextRequest) {
         },
       });
 
-      activities = recentOrders.map(order => ({
-          id: `user-order-${order.id || Math.random().toString(36).substr(2, 9)}`,
-          type: "order",
-          title: `Your order #${order.orderNumber} ${order.status.toLowerCase()}`,
-          description: `${order.orderItems.length} items - ${formatTimeAgo(order.createdAt)}`,
-          timestamp: order.createdAt,
-          status: getOrderStatusColor(order.status),
-        }));
+      activities = recentOrders.map((order) => ({
+        id: `user-order-${order.id || Math.random().toString(36).substr(2, 9)}`,
+        type: "order",
+        title: `Your order #${order.orderNumber} ${order.status.toLowerCase()}`,
+        description: `${order.orderItems.length} items - ${formatTimeAgo(order.createdAt)}`,
+        timestamp: order.createdAt,
+        status: getOrderStatusColor(order.status),
+      }));
     }
 
     return sendSuccess(
@@ -186,9 +194,9 @@ function formatTimeAgo(date: Date): string {
   if (diffInHours < 1) {
     return "Just now";
   } else if (diffInHours < 24) {
-    return `${diffInHours} hour${diffInHours > 1 ? 's' : ''} ago`;
+    return `${diffInHours} hour${diffInHours > 1 ? "s" : ""} ago`;
   } else {
-    return `${diffInDays} day${diffInDays > 1 ? 's' : ''} ago`;
+    return `${diffInDays} day${diffInDays > 1 ? "s" : ""} ago`;
   }
 }
 

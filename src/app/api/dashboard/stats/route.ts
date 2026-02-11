@@ -7,10 +7,10 @@ import { NextRequest } from "next/server";
 
 /**
  * Dashboard Statistics API
- * 
+ *
  * Returns real-time statistics based on user role:
  * - ADMIN: System-wide statistics
- * - SUPPLIER: Supplier-specific statistics  
+ * - SUPPLIER: Supplier-specific statistics
  * - USER: User-specific statistics
  */
 export async function GET(req: NextRequest) {
@@ -19,12 +19,16 @@ export async function GET(req: NextRequest) {
     const token = getAccessToken(req);
 
     if (!token) {
-      return sendError("Authentication required", ERROR_CODES.UNAUTHORIZED, 401);
+      return sendError(
+        "Authentication required",
+        ERROR_CODES.UNAUTHORIZED,
+        401
+      );
     }
 
     // Verify token and get user info
     const decoded = await verifyToken(token, "access");
-    
+
     // Fetch user with role-specific data
     const user = await prisma.user.findUnique({
       where: { id: decoded.userId },
@@ -92,43 +96,44 @@ export async function GET(req: NextRequest) {
       });
 
       if (supplier) {
-        const [supplierOrders, pendingOrders, completedOrders] = await Promise.all([
-          prisma.order.count({
-            where: {
-              orderItems: {
-                some: {
-                  product: {
-                    supplierId: supplier.id,
+        const [supplierOrders, pendingOrders, completedOrders] =
+          await Promise.all([
+            prisma.order.count({
+              where: {
+                orderItems: {
+                  some: {
+                    product: {
+                      supplierId: supplier.id,
+                    },
                   },
                 },
               },
-            },
-          }),
-          prisma.order.count({
-            where: {
-              status: "PENDING",
-              orderItems: {
-                some: {
-                  product: {
-                    supplierId: supplier.id,
+            }),
+            prisma.order.count({
+              where: {
+                status: "PENDING",
+                orderItems: {
+                  some: {
+                    product: {
+                      supplierId: supplier.id,
+                    },
                   },
                 },
               },
-            },
-          }),
-          prisma.order.count({
-            where: {
-              status: "DELIVERED",
-              orderItems: {
-                some: {
-                  product: {
-                    supplierId: supplier.id,
+            }),
+            prisma.order.count({
+              where: {
+                status: "DELIVERED",
+                orderItems: {
+                  some: {
+                    product: {
+                      supplierId: supplier.id,
+                    },
                   },
                 },
               },
-            },
-          }),
-        ]);
+            }),
+          ]);
 
         stats = {
           supplierId: supplier.id,
@@ -145,11 +150,11 @@ export async function GET(req: NextRequest) {
       // User gets their specific statistics
       const [userOrders, pendingOrders, completedOrders] = await Promise.all([
         prisma.order.count({ where: { userId: user.id } }),
-        prisma.order.count({ 
-          where: { 
+        prisma.order.count({
+          where: {
             userId: user.id,
-            status: { in: ["PENDING", "CONFIRMED", "PROCESSING", "SHIPPED"] }
-          } 
+            status: { in: ["PENDING", "CONFIRMED", "PROCESSING", "SHIPPED"] },
+          },
         }),
         prisma.order.count({ where: { userId: user.id, status: "DELIVERED" } }),
       ]);

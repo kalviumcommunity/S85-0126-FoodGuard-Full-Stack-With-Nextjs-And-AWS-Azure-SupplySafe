@@ -1,6 +1,6 @@
-import { prisma } from '@/lib/prisma';
-import { sendSuccess, sendError } from '@/lib/responseHandler';
-import { ERROR_CODES } from '@/lib/errorCodes';
+import { prisma } from "@/lib/prisma";
+import { sendSuccess, sendError } from "@/lib/responseHandler";
+import { ERROR_CODES } from "@/lib/errorCodes";
 
 interface DatabaseMetrics {
   connections: {
@@ -23,7 +23,7 @@ interface DatabaseMetrics {
     since: string;
   };
   health: {
-    status: 'healthy' | 'warning' | 'critical';
+    status: "healthy" | "warning" | "critical";
     lastCheck: string;
     issues: string[];
   };
@@ -46,10 +46,12 @@ async function getDatabaseMetrics(): Promise<DatabaseMetrics> {
       FROM pg_settings 
       WHERE name = 'max_connections'
     `;
-    
-    const connectionResult = await prisma.$queryRawUnsafe(connectionQuery) as any[];
+
+    const connectionResult = (await prisma.$queryRawUnsafe(
+      connectionQuery
+    )) as any[];
     const connectionData = connectionResult[0];
-    
+
     const activeConnections = Number(connectionData.active_connections);
     const maxConnections = Number(connectionData.max_connections);
     const connectionUtilization = (activeConnections / maxConnections) * 100;
@@ -60,10 +62,10 @@ async function getDatabaseMetrics(): Promise<DatabaseMetrics> {
         pg_database_size(current_database()) as used_size,
         (SELECT setting::int * 8192 FROM pg_settings WHERE name = 'shared_buffers') as buffer_size
     `;
-    
-    const sizeResult = await prisma.$queryRawUnsafe(sizeQuery) as any[];
+
+    const sizeResult = (await prisma.$queryRawUnsafe(sizeQuery)) as any[];
     const sizeData = sizeResult[0];
-    
+
     const usedSize = Number(sizeData.used_size);
     const totalSize = usedSize * 2; // Estimate total size as 2x current usage
     const storageUtilization = (usedSize / totalSize) * 100;
@@ -77,10 +79,12 @@ async function getDatabaseMetrics(): Promise<DatabaseMetrics> {
       FROM pg_stat_activity
       WHERE query != '<IDLE>' AND query IS NOT NULL
     `;
-    
-    const performanceResult = await prisma.$queryRawUnsafe(performanceQuery) as any[];
+
+    const performanceResult = (await prisma.$queryRawUnsafe(
+      performanceQuery
+    )) as any[];
     const performanceData = performanceResult[0];
-    
+
     const avgQueryTime = Number(performanceData.avg_query_time) || 0;
     const queriesPerSecond = Number(performanceData.active_queries) || 0;
     const slowQueries = Number(performanceData.slow_queries) || 0;
@@ -91,35 +95,35 @@ async function getDatabaseMetrics(): Promise<DatabaseMetrics> {
         EXTRACT(EPOCH FROM (NOW() - pg_postmaster_start_time())) as uptime_seconds,
         pg_postmaster_start_time() as start_time
     `;
-    
-    const uptimeResult = await prisma.$queryRawUnsafe(uptimeQuery) as any[];
+
+    const uptimeResult = (await prisma.$queryRawUnsafe(uptimeQuery)) as any[];
     const uptimeData = uptimeResult[0];
-    
+
     const uptimeSeconds = Number(uptimeData.uptime_seconds);
     const startTime = uptimeData.start_time;
 
     // Determine health status
     const issues: string[] = [];
-    let status: 'healthy' | 'warning' | 'critical' = 'healthy';
+    let status: "healthy" | "warning" | "critical" = "healthy";
 
     if (connectionUtilization > 80) {
-      issues.push('High connection utilization');
-      status = connectionUtilization > 90 ? 'critical' : 'warning';
+      issues.push("High connection utilization");
+      status = connectionUtilization > 90 ? "critical" : "warning";
     }
 
     if (storageUtilization > 80) {
-      issues.push('High storage utilization');
-      status = storageUtilization > 90 ? 'critical' : 'warning';
+      issues.push("High storage utilization");
+      status = storageUtilization > 90 ? "critical" : "warning";
     }
 
     if (avgQueryTime > 1000) {
-      issues.push('Slow query performance');
-      status = avgQueryTime > 5000 ? 'critical' : 'warning';
+      issues.push("Slow query performance");
+      status = avgQueryTime > 5000 ? "critical" : "warning";
     }
 
     if (slowQueries > 10) {
-      issues.push('Multiple slow queries detected');
-      status = slowQueries > 50 ? 'critical' : 'warning';
+      issues.push("Multiple slow queries detected");
+      status = slowQueries > 50 ? "critical" : "warning";
     }
 
     return {
@@ -149,7 +153,7 @@ async function getDatabaseMetrics(): Promise<DatabaseMetrics> {
       },
     };
   } catch (error) {
-    console.error('Error fetching database metrics:', error);
+    console.error("Error fetching database metrics:", error);
     throw error;
   }
 }
@@ -163,18 +167,18 @@ async function getDatabaseInfo(): Promise<DatabaseInfo> {
         current_setting('server_encoding') as encoding,
         current_setting('lc_collate') as collation
     `;
-    
-    const result = await prisma.$queryRawUnsafe(infoQuery) as any[];
+
+    const result = (await prisma.$queryRawUnsafe(infoQuery)) as any[];
     const data = result[0];
-    
+
     return {
-      version: data.version.split(',')[0], // Get just the version number
+      version: data.version.split(",")[0], // Get just the version number
       timezone: data.timezone,
       encoding: data.encoding,
       collation: data.collation,
     };
   } catch (error) {
-    console.error('Error fetching database info:', error);
+    console.error("Error fetching database info:", error);
     throw error;
   }
 }
@@ -186,14 +190,17 @@ export async function GET() {
       getDatabaseInfo(),
     ]);
 
-    return sendSuccess({
-      metrics,
-      databaseInfo,
-    }, 'Database metrics retrieved successfully');
+    return sendSuccess(
+      {
+        metrics,
+        databaseInfo,
+      },
+      "Database metrics retrieved successfully"
+    );
   } catch (error) {
-    console.error('Database metrics error:', error);
+    console.error("Database metrics error:", error);
     return sendError(
-      'Failed to retrieve database metrics',
+      "Failed to retrieve database metrics",
       ERROR_CODES.DATABASE_ERROR,
       503,
       error

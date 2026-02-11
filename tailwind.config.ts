@@ -34,12 +34,12 @@ const config: Config = {
         mono: ["var(--font-geist-mono)", "monospace"],
       },
       animation: {
-        'spin-slow': 'spin-slow 8s linear infinite',
+        "spin-slow": "spin-slow 8s linear infinite",
       },
       keyframes: {
-        'spin-slow': {
-          '0%': { transform: 'rotate(0deg)' },
-          '100%': { transform: 'rotate(360deg)' },
+        "spin-slow": {
+          "0%": { transform: "rotate(0deg)" },
+          "100%": { transform: "rotate(360deg)" },
         },
       },
     },

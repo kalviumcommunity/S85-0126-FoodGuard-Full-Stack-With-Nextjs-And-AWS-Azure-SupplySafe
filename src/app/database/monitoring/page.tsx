@@ -1,24 +1,30 @@
-'use client';
+"use client";
 
-import { useState, useEffect } from 'react';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
-import { Progress } from '@/components/ui/progress';
-import { 
-  Database, 
-  Activity, 
-  HardDrive, 
-  Users, 
-  Clock, 
+import { useState, useEffect } from "react";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import { Progress } from "@/components/ui/progress";
+import {
+  Database,
+  Activity,
+  HardDrive,
+  Users,
+  Clock,
   AlertTriangle,
   CheckCircle,
   TrendingUp,
   Server,
   RefreshCw,
-  Loader2
-} from 'lucide-react';
-import { toast } from 'sonner';
+  Loader2,
+} from "lucide-react";
+import { toast } from "sonner";
 
 interface DatabaseMetrics {
   connections: {
@@ -41,7 +47,7 @@ interface DatabaseMetrics {
     since: string;
   };
   health: {
-    status: 'healthy' | 'warning' | 'critical';
+    status: "healthy" | "warning" | "critical";
     lastCheck: string;
     issues: string[];
   };
@@ -64,16 +70,16 @@ export default function DatabaseMonitoringDashboard() {
   const fetchDatabaseMetrics = async () => {
     setIsLoading(true);
     try {
-      const response = await fetch('/api/database/metrics');
+      const response = await fetch("/api/database/metrics");
       if (!response.ok) {
-        throw new Error('Failed to fetch database metrics');
+        throw new Error("Failed to fetch database metrics");
       }
       const data = await response.json();
       setMetrics(data.metrics);
       setDbInfo(data.databaseInfo);
     } catch (error) {
-      toast.error('Failed to fetch database metrics');
-      console.error('Metrics fetch error:', error);
+      toast.error("Failed to fetch database metrics");
+      console.error("Metrics fetch error:", error);
     } finally {
       setIsLoading(false);
     }
@@ -92,24 +98,24 @@ export default function DatabaseMonitoringDashboard() {
 
   const getHealthColor = (status: string) => {
     switch (status) {
-      case 'healthy':
-        return 'bg-green-500';
-      case 'warning':
-        return 'bg-yellow-500';
-      case 'critical':
-        return 'bg-red-500';
+      case "healthy":
+        return "bg-green-500";
+      case "warning":
+        return "bg-yellow-500";
+      case "critical":
+        return "bg-red-500";
       default:
-        return 'bg-gray-500';
+        return "bg-gray-500";
     }
   };
 
   const getHealthIcon = (status: string) => {
     switch (status) {
-      case 'healthy':
+      case "healthy":
         return <CheckCircle className="h-4 w-4 text-green-500" />;
-      case 'warning':
+      case "warning":
         return <AlertTriangle className="h-4 w-4 text-yellow-500" />;
-      case 'critical':
+      case "critical":
         return <AlertTriangle className="h-4 w-4 text-red-500" />;
       default:
         return <Activity className="h-4 w-4 text-gray-500" />;
@@ -117,18 +123,18 @@ export default function DatabaseMonitoringDashboard() {
   };
 
   const formatBytes = (bytes: number) => {
-    if (bytes === 0) return '0 B';
+    if (bytes === 0) return "0 B";
     const k = 1024;
-    const sizes = ['B', 'MB', 'GB', 'TB'];
+    const sizes = ["B", "MB", "GB", "TB"];
     const i = Math.floor(Math.log(bytes) / Math.log(k));
-    return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+    return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + " " + sizes[i];
   };
 
   const formatUptime = (seconds: number) => {
     const days = Math.floor(seconds / 86400);
     const hours = Math.floor((seconds % 86400) / 3600);
     const minutes = Math.floor((seconds % 3600) / 60);
-    
+
     if (days > 0) {
       return `${days}d ${hours}h ${minutes}m`;
     } else if (hours > 0) {
@@ -168,11 +174,21 @@ export default function DatabaseMonitoringDashboard() {
             onClick={() => setAutoRefresh(!autoRefresh)}
             className="flex items-center gap-2"
           >
-            <RefreshCw className={`h-4 w-4 ${autoRefresh ? 'animate-spin' : ''}`} />
+            <RefreshCw
+              className={`h-4 w-4 ${autoRefresh ? "animate-spin" : ""}`}
+            />
             Auto Refresh
           </Button>
-          <Button onClick={fetchDatabaseMetrics} disabled={isLoading} className="flex items-center gap-2">
-            {isLoading ? <Loader2 className="h-4 w-4 animate-spin" /> : <RefreshCw className="h-4 w-4" />}
+          <Button
+            onClick={fetchDatabaseMetrics}
+            disabled={isLoading}
+            className="flex items-center gap-2"
+          >
+            {isLoading ? (
+              <Loader2 className="h-4 w-4 animate-spin" />
+            ) : (
+              <RefreshCw className="h-4 w-4" />
+            )}
             Refresh
           </Button>
         </div>
@@ -180,21 +196,28 @@ export default function DatabaseMonitoringDashboard() {
 
       {/* Health Status */}
       {metrics && (
-        <Card className="border-l-4" style={{ borderLeftColor: getHealthColor(metrics.health.status) }}>
+        <Card
+          className="border-l-4"
+          style={{ borderLeftColor: getHealthColor(metrics.health.status) }}
+        >
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               {getHealthIcon(metrics.health.status)}
               Database Health: {metrics.health.status.toUpperCase()}
             </CardTitle>
             <CardDescription>
-              Last checked: {new Date(metrics.health.lastCheck).toLocaleString()}
+              Last checked:{" "}
+              {new Date(metrics.health.lastCheck).toLocaleString()}
             </CardDescription>
           </CardHeader>
           {metrics.health.issues.length > 0 && (
             <CardContent>
               <div className="space-y-2">
                 {metrics.health.issues.map((issue, index) => (
-                  <div key={index} className="flex items-center gap-2 text-sm text-yellow-700 bg-yellow-50 p-2 rounded">
+                  <div
+                    key={index}
+                    className="flex items-center gap-2 text-sm text-yellow-700 bg-yellow-50 p-2 rounded"
+                  >
                     <AlertTriangle className="h-4 w-4" />
                     {issue}
                   </div>
@@ -209,38 +232,45 @@ export default function DatabaseMonitoringDashboard() {
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Active Connections</CardTitle>
+            <CardTitle className="text-sm font-medium">
+              Active Connections
+            </CardTitle>
             <Users className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">
-              {metrics ? metrics.connections.active : 'N/A'}
+              {metrics ? metrics.connections.active : "N/A"}
             </div>
             <p className="text-xs text-muted-foreground">
-              of {metrics ? metrics.connections.max : 'N/A'} max
+              of {metrics ? metrics.connections.max : "N/A"} max
             </p>
             {metrics && (
-              <Progress value={metrics.connections.utilization} className="mt-2" />
+              <Progress
+                value={metrics.connections.utilization}
+                className="mt-2"
+              />
             )}
           </CardContent>
         </Card>
 
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Query Performance</CardTitle>
+            <CardTitle className="text-sm font-medium">
+              Query Performance
+            </CardTitle>
             <Activity className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">
-              {metrics ? `${metrics.performance.avgQueryTime}ms` : 'N/A'}
+              {metrics ? `${metrics.performance.avgQueryTime}ms` : "N/A"}
             </div>
-            <p className="text-xs text-muted-foreground">
-              Avg query time
-            </p>
+            <p className="text-xs text-muted-foreground">Avg query time</p>
             {metrics && (
               <div className="flex items-center gap-2 mt-2">
                 <TrendingUp className="h-3 w-3" />
-                <span className="text-xs">{metrics.performance.queriesPerSecond} q/s</span>
+                <span className="text-xs">
+                  {metrics.performance.queriesPerSecond} q/s
+                </span>
               </div>
             )}
           </CardContent>
@@ -253,10 +283,10 @@ export default function DatabaseMonitoringDashboard() {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">
-              {metrics ? `${metrics.storage.utilization}%` : 'N/A'}
+              {metrics ? `${metrics.storage.utilization}%` : "N/A"}
             </div>
             <p className="text-xs text-muted-foreground">
-              {metrics ? formatBytes(metrics.storage.used) : 'N/A'} used
+              {metrics ? formatBytes(metrics.storage.used) : "N/A"} used
             </p>
             {metrics && (
               <Progress value={metrics.storage.utilization} className="mt-2" />
@@ -271,10 +301,12 @@ export default function DatabaseMonitoringDashboard() {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">
-              {metrics ? formatUptime(metrics.uptime.total) : 'N/A'}
+              {metrics ? formatUptime(metrics.uptime.total) : "N/A"}
             </div>
             <p className="text-xs text-muted-foreground">
-              {metrics ? `Since ${new Date(metrics.uptime.since).toLocaleDateString()}` : 'N/A'}
+              {metrics
+                ? `Since ${new Date(metrics.uptime.since).toLocaleDateString()}`
+                : "N/A"}
             </p>
           </CardContent>
         </Card>
@@ -286,24 +318,36 @@ export default function DatabaseMonitoringDashboard() {
         <Card>
           <CardHeader>
             <CardTitle>Performance Metrics</CardTitle>
-            <CardDescription>
-              Detailed performance information
-            </CardDescription>
+            <CardDescription>Detailed performance information</CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
             {metrics ? (
               <>
                 <div className="flex items-center justify-between">
-                  <span className="text-sm font-medium">Queries per Second</span>
-                  <Badge variant="outline">{metrics.performance.queriesPerSecond}</Badge>
+                  <span className="text-sm font-medium">
+                    Queries per Second
+                  </span>
+                  <Badge variant="outline">
+                    {metrics.performance.queriesPerSecond}
+                  </Badge>
                 </div>
                 <div className="flex items-center justify-between">
-                  <span className="text-sm font-medium">Average Query Time</span>
-                  <Badge variant="outline">{metrics.performance.avgQueryTime}ms</Badge>
+                  <span className="text-sm font-medium">
+                    Average Query Time
+                  </span>
+                  <Badge variant="outline">
+                    {metrics.performance.avgQueryTime}ms
+                  </Badge>
                 </div>
                 <div className="flex items-center justify-between">
                   <span className="text-sm font-medium">Slow Queries</span>
-                  <Badge variant={metrics.performance.slowQueries > 0 ? "destructive" : "default"}>
+                  <Badge
+                    variant={
+                      metrics.performance.slowQueries > 0
+                        ? "destructive"
+                        : "default"
+                    }
+                  >
                     {metrics.performance.slowQueries}
                   </Badge>
                 </div>
@@ -311,7 +355,9 @@ export default function DatabaseMonitoringDashboard() {
             ) : (
               <div className="text-center py-4">
                 <Loader2 className="h-8 w-8 animate-spin mx-auto mb-2" />
-                <p className="text-sm text-muted-foreground">Loading performance metrics...</p>
+                <p className="text-sm text-muted-foreground">
+                  Loading performance metrics...
+                </p>
               </div>
             )}
           </CardContent>
@@ -321,9 +367,7 @@ export default function DatabaseMonitoringDashboard() {
         <Card>
           <CardHeader>
             <CardTitle>Database Information</CardTitle>
-            <CardDescription>
-              PostgreSQL server details
-            </CardDescription>
+            <CardDescription>PostgreSQL server details</CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
             {dbInfo ? (
@@ -348,7 +392,9 @@ export default function DatabaseMonitoringDashboard() {
             ) : (
               <div className="text-center py-4">
                 <Server className="h-8 w-8 text-muted-foreground mx-auto mb-2" />
-                <p className="text-sm text-muted-foreground">No database information available</p>
+                <p className="text-sm text-muted-foreground">
+                  No database information available
+                </p>
               </div>
             )}
           </CardContent>
@@ -360,38 +406,49 @@ export default function DatabaseMonitoringDashboard() {
         <Card>
           <CardHeader>
             <CardTitle>Connection Details</CardTitle>
-            <CardDescription>
-              Database connection utilization
-            </CardDescription>
+            <CardDescription>Database connection utilization</CardDescription>
           </CardHeader>
           <CardContent>
             <div className="space-y-4">
               <div>
                 <div className="flex items-center justify-between mb-2">
-                  <span className="text-sm font-medium">Connection Utilization</span>
+                  <span className="text-sm font-medium">
+                    Connection Utilization
+                  </span>
                   <span className="text-sm text-muted-foreground">
                     {metrics.connections.active} / {metrics.connections.max}
                   </span>
                 </div>
-                <Progress value={metrics.connections.utilization} className="h-2" />
+                <Progress
+                  value={metrics.connections.utilization}
+                  className="h-2"
+                />
               </div>
-              
+
               <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
                 <div>
                   <span className="text-muted-foreground">Active:</span>
-                  <span className="ml-2 font-medium">{metrics.connections.active}</span>
+                  <span className="ml-2 font-medium">
+                    {metrics.connections.active}
+                  </span>
                 </div>
                 <div>
                   <span className="text-muted-foreground">Max:</span>
-                  <span className="ml-2 font-medium">{metrics.connections.max}</span>
+                  <span className="ml-2 font-medium">
+                    {metrics.connections.max}
+                  </span>
                 </div>
                 <div>
                   <span className="text-muted-foreground">Utilization:</span>
-                  <span className="ml-2 font-medium">{metrics.connections.utilization}%</span>
+                  <span className="ml-2 font-medium">
+                    {metrics.connections.utilization}%
+                  </span>
                 </div>
                 <div>
                   <span className="text-muted-foreground">Available:</span>
-                  <span className="ml-2 font-medium">{metrics.connections.max - metrics.connections.active}</span>
+                  <span className="ml-2 font-medium">
+                    {metrics.connections.max - metrics.connections.active}
+                  </span>
                 </div>
               </div>
             </div>
@@ -404,38 +461,47 @@ export default function DatabaseMonitoringDashboard() {
         <Card>
           <CardHeader>
             <CardTitle>Storage Details</CardTitle>
-            <CardDescription>
-              Database storage utilization
-            </CardDescription>
+            <CardDescription>Database storage utilization</CardDescription>
           </CardHeader>
           <CardContent>
             <div className="space-y-4">
               <div>
                 <div className="flex items-center justify-between mb-2">
-                  <span className="text-sm font-medium">Storage Utilization</span>
+                  <span className="text-sm font-medium">
+                    Storage Utilization
+                  </span>
                   <span className="text-sm text-muted-foreground">
-                    {formatBytes(metrics.storage.used)} / {formatBytes(metrics.storage.total)}
+                    {formatBytes(metrics.storage.used)} /{" "}
+                    {formatBytes(metrics.storage.total)}
                   </span>
                 </div>
                 <Progress value={metrics.storage.utilization} className="h-2" />
               </div>
-              
+
               <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
                 <div>
                   <span className="text-muted-foreground">Used:</span>
-                  <span className="ml-2 font-medium">{formatBytes(metrics.storage.used)}</span>
+                  <span className="ml-2 font-medium">
+                    {formatBytes(metrics.storage.used)}
+                  </span>
                 </div>
                 <div>
                   <span className="text-muted-foreground">Total:</span>
-                  <span className="ml-2 font-medium">{formatBytes(metrics.storage.total)}</span>
+                  <span className="ml-2 font-medium">
+                    {formatBytes(metrics.storage.total)}
+                  </span>
                 </div>
                 <div>
                   <span className="text-muted-foreground">Utilization:</span>
-                  <span className="ml-2 font-medium">{metrics.storage.utilization}%</span>
+                  <span className="ml-2 font-medium">
+                    {metrics.storage.utilization}%
+                  </span>
                 </div>
                 <div>
                   <span className="text-muted-foreground">Free:</span>
-                  <span className="ml-2 font-medium">{formatBytes(metrics.storage.total - metrics.storage.used)}</span>
+                  <span className="ml-2 font-medium">
+                    {formatBytes(metrics.storage.total - metrics.storage.used)}
+                  </span>
                 </div>
               </div>
             </div>

@@ -1,6 +1,6 @@
-import { NextResponse } from 'next/server';
-import { logger } from '@/lib/logger';
-import { ERROR_CODES } from '@/lib/errorCodes';
+import { NextResponse } from "next/server";
+import { logger } from "@/lib/logger";
+import { ERROR_CODES } from "@/lib/errorCodes";
 
 export interface DatabaseError extends Error {
   code?: string;
@@ -19,16 +19,22 @@ export interface DatabaseError extends Error {
 }
 
 export class DatabaseConnectionError extends Error {
-  constructor(message: string, public cause?: Error) {
+  constructor(
+    message: string,
+    public cause?: Error
+  ) {
     super(message);
-    this.name = 'DatabaseConnectionError';
+    this.name = "DatabaseConnectionError";
   }
 }
 
 export class DatabaseTimeoutError extends Error {
-  constructor(message: string, public timeout: number) {
+  constructor(
+    message: string,
+    public timeout: number
+  ) {
     super(message);
-    this.name = 'DatabaseTimeoutError';
+    this.name = "DatabaseTimeoutError";
   }
 }
 
@@ -39,14 +45,17 @@ export class DatabaseQueryError extends Error {
     public parameters?: any[]
   ) {
     super(message);
-    this.name = 'DatabaseQueryError';
+    this.name = "DatabaseQueryError";
   }
 }
 
 export class DatabaseMigrationError extends Error {
-  constructor(message: string, public migration?: string) {
+  constructor(
+    message: string,
+    public migration?: string
+  ) {
     super(message);
-    this.name = 'DatabaseMigrationError';
+    this.name = "DatabaseMigrationError";
   }
 }
 
@@ -68,18 +77,21 @@ export class DatabaseErrorHandler {
   /**
    * Handle database errors with proper logging and categorization
    */
-  public handleError(error: unknown, context?: {
-    operation?: string;
-    query?: string;
-    parameters?: any[];
-    userId?: string;
-    requestId?: string;
-  }): NextResponse {
+  public handleError(
+    error: unknown,
+    context?: {
+      operation?: string;
+      query?: string;
+      parameters?: any[];
+      userId?: string;
+      requestId?: string;
+    }
+  ): NextResponse {
     const errorInfo = this.categorizeError(error, context);
-    
+
     // Log the error with full context
     logger.error(
-      `Database error in ${context?.operation || 'unknown operation'}`,
+      `Database error in ${context?.operation || "unknown operation"}`,
       error instanceof Error ? error : new Error(String(error)),
       {
         operation: context?.operation,
@@ -91,7 +103,7 @@ export class DatabaseErrorHandler {
         severity: errorInfo.severity,
         isRetryable: errorInfo.isRetryable,
       },
-      `DATABASE_ERROR_${context?.operation?.toUpperCase() || 'UNKNOWN'}`
+      `DATABASE_ERROR_${context?.operation?.toUpperCase() || "UNKNOWN"}`
     );
 
     // Return appropriate HTTP response
@@ -101,126 +113,135 @@ export class DatabaseErrorHandler {
   /**
    * Categorize database errors for appropriate handling
    */
-  private categorizeError(error: unknown, context?: any): {
-    type: 'connection' | 'timeout' | 'query' | 'constraint' | 'migration' | 'unknown';
+  private categorizeError(
+    error: unknown,
+    context?: any
+  ): {
+    type:
+      | "connection"
+      | "timeout"
+      | "query"
+      | "constraint"
+      | "migration"
+      | "unknown";
     code: string;
     message: string;
-    severity: 'low' | 'medium' | 'high' | 'critical';
+    severity: "low" | "medium" | "high" | "critical";
     isRetryable: boolean;
     userMessage: string;
   } {
     if (error instanceof DatabaseConnectionError) {
       return {
-        type: 'connection',
+        type: "connection",
         code: ERROR_CODES.DATABASE_CONNECTION,
         message: error.message,
-        severity: 'critical',
+        severity: "critical",
         isRetryable: true,
-        userMessage: 'Database connection failed. Please try again.',
+        userMessage: "Database connection failed. Please try again.",
       };
     }
 
     if (error instanceof DatabaseTimeoutError) {
       return {
-        type: 'timeout',
+        type: "timeout",
         code: ERROR_CODES.DATABASE_TIMEOUT,
         message: error.message,
-        severity: 'high',
+        severity: "high",
         isRetryable: true,
-        userMessage: 'Request timed out. Please try again.',
+        userMessage: "Request timed out. Please try again.",
       };
     }
 
     if (error instanceof DatabaseQueryError) {
       return {
-        type: 'query',
+        type: "query",
         code: ERROR_CODES.DATABASE_QUERY,
         message: error.message,
-        severity: 'medium',
+        severity: "medium",
         isRetryable: false,
-        userMessage: 'Database query failed. Please contact support.',
+        userMessage: "Database query failed. Please contact support.",
       };
     }
 
     if (error instanceof DatabaseMigrationError) {
       return {
-        type: 'migration',
+        type: "migration",
         code: ERROR_CODES.DATABASE_ERROR,
         message: error.message,
-        severity: 'critical',
+        severity: "critical",
         isRetryable: false,
-        userMessage: 'Database migration failed. Please contact administrator.',
+        userMessage: "Database migration failed. Please contact administrator.",
       };
     }
 
     // Handle PostgreSQL specific errors
     if (this.isPostgresError(error)) {
       const pgError = error as DatabaseError;
-      
+
       switch (pgError.code) {
-        case '08006': // connection_failure
-        case '08001': // sqlclient_unable_to_establish_sqlconnection
-        case '08004': // sqlserver_rejected_establishment_of_sqlconnection
-        case '08003': // connection_does_not_exist
-        case '57P01': // admin_shutdown
-        case '57P02': // crash_shutdown
-        case '57P03': // cannot_connect_now
+        case "08006": // connection_failure
+        case "08001": // sqlclient_unable_to_establish_sqlconnection
+        case "08004": // sqlserver_rejected_establishment_of_sqlconnection
+        case "08003": // connection_does_not_exist
+        case "57P01": // admin_shutdown
+        case "57P02": // crash_shutdown
+        case "57P03": // cannot_connect_now
           return {
-            type: 'connection',
+            type: "connection",
             code: ERROR_CODES.DATABASE_CONNECTION,
             message: pgError.message,
-            severity: 'critical',
+            severity: "critical",
             isRetryable: true,
-            userMessage: 'Database connection failed. Please try again.',
+            userMessage: "Database connection failed. Please try again.",
           };
 
-        case '57014': // statement_timeout
-        case '53100': // disk_full
-        case '53200': // out_of_memory
-        case '53300': // too_many_connections
-        case '53400': // configuration_limit_exceeded
+        case "57014": // statement_timeout
+        case "53100": // disk_full
+        case "53200": // out_of_memory
+        case "53300": // too_many_connections
+        case "53400": // configuration_limit_exceeded
           return {
-            type: 'timeout',
+            type: "timeout",
             code: ERROR_CODES.DATABASE_TIMEOUT,
             message: pgError.message,
-            severity: 'high',
+            severity: "high",
             isRetryable: true,
-            userMessage: 'Database temporarily unavailable. Please try again.',
+            userMessage: "Database temporarily unavailable. Please try again.",
           };
 
-        case '23505': // unique_violation
-        case '23503': // foreign_key_violation
-        case '23514': // check_violation
-        case '23P01': // exclusion_violation
+        case "23505": // unique_violation
+        case "23503": // foreign_key_violation
+        case "23514": // check_violation
+        case "23P01": // exclusion_violation
           return {
-            type: 'constraint',
+            type: "constraint",
             code: ERROR_CODES.DUPLICATE_ENTRY,
             message: pgError.message,
-            severity: 'medium',
+            severity: "medium",
             isRetryable: false,
-            userMessage: 'Data validation failed. Please check your input.',
+            userMessage: "Data validation failed. Please check your input.",
           };
 
-        case '42P01': // undefined_table
-        case '42703': // undefined_column
-        case '42883': // undefined_function
+        case "42P01": // undefined_table
+        case "42703": // undefined_column
+        case "42883": // undefined_function
           return {
-            type: 'query',
+            type: "query",
             code: ERROR_CODES.DATABASE_QUERY,
             message: pgError.message,
-            severity: 'high',
+            severity: "high",
             isRetryable: false,
-            userMessage: 'Database schema error. Please contact support.',
+            userMessage: "Database schema error. Please contact support.",
           };
 
         default:
           return {
-            type: 'unknown',
+            type: "unknown",
             code: ERROR_CODES.DATABASE_ERROR,
             message: pgError.message,
-            severity: 'medium',
+            severity: "medium",
             isRetryable: false,
-            userMessage: 'Database error occurred. Please try again.',
+            userMessage: "Database error occurred. Please try again.",
           };
       }
     }
@@ -228,23 +249,23 @@ export class DatabaseErrorHandler {
     // Handle generic errors
     if (error instanceof Error) {
       return {
-        type: 'unknown',
+        type: "unknown",
         code: ERROR_CODES.INTERNAL_ERROR,
         message: error.message,
-        severity: 'medium',
+        severity: "medium",
         isRetryable: false,
-        userMessage: 'An unexpected error occurred. Please try again.',
+        userMessage: "An unexpected error occurred. Please try again.",
       };
     }
 
     // Handle unknown error types
     return {
-      type: 'unknown',
+      type: "unknown",
       code: ERROR_CODES.INTERNAL_SERVER_ERROR,
-      message: 'Unknown error occurred',
-      severity: 'high',
+      message: "Unknown error occurred",
+      severity: "high",
       isRetryable: false,
-      userMessage: 'An unexpected error occurred. Please try again.',
+      userMessage: "An unexpected error occurred. Please try again.",
     };
   }
 
@@ -252,7 +273,7 @@ export class DatabaseErrorHandler {
    * Check if error is a PostgreSQL error
    */
   private isPostgresError(error: any): error is DatabaseError {
-    return error && typeof error === 'object' && 'code' in error;
+    return error && typeof error === "object" && "code" in error;
   }
 
   /**
@@ -267,7 +288,7 @@ export class DatabaseErrorHandler {
     userMessage: string;
   }): NextResponse {
     const statusCode = this.getStatusCode(errorInfo.type, errorInfo.severity);
-    
+
     const response = {
       success: false,
       message: errorInfo.userMessage,
@@ -281,7 +302,7 @@ export class DatabaseErrorHandler {
     };
 
     // Add detailed error information in development
-    if (process.env.NODE_ENV === 'development') {
+    if (process.env.NODE_ENV === "development") {
       (response.error as any).details = {
         originalMessage: errorInfo.message,
         stack: new Error().stack,
@@ -296,14 +317,14 @@ export class DatabaseErrorHandler {
    */
   private getStatusCode(type: string, severity: string): number {
     switch (type) {
-      case 'connection':
-      case 'timeout':
+      case "connection":
+      case "timeout":
         return 503; // Service Unavailable
-      case 'constraint':
+      case "constraint":
         return 400; // Bad Request
-      case 'query':
-        return severity === 'high' ? 500 : 422; // Internal Server Error or Unprocessable Entity
-      case 'migration':
+      case "query":
+        return severity === "high" ? 500 : 422; // Internal Server Error or Unprocessable Entity
+      case "migration":
         return 503; // Service Unavailable
       default:
         return 500; // Internal Server Error
@@ -361,9 +382,11 @@ export async function withRetry<T>(
       lastError = error;
 
       // Don't retry on non-retryable errors
-      if (error instanceof DatabaseQueryError || 
-          error instanceof DatabaseMigrationError ||
-          (error instanceof Error && error.message.includes('constraint'))) {
+      if (
+        error instanceof DatabaseQueryError ||
+        error instanceof DatabaseMigrationError ||
+        (error instanceof Error && error.message.includes("constraint"))
+      ) {
         throw error;
       }
 
@@ -373,15 +396,18 @@ export async function withRetry<T>(
       }
 
       // Calculate delay with exponential backoff
-      const delay = Math.min(baseDelay * Math.pow(backoffFactor, attempt), maxDelay);
-      
+      const delay = Math.min(
+        baseDelay * Math.pow(backoffFactor, attempt),
+        maxDelay
+      );
+
       logger.warn(
         `Database operation failed, retrying in ${delay}ms (attempt ${attempt + 1}/${maxRetries})`,
         error instanceof Error ? error : new Error(String(error)),
         { attempt: attempt + 1, maxRetries, delay }
       );
 
-      await new Promise(resolve => setTimeout(resolve, delay));
+      await new Promise((resolve) => setTimeout(resolve, delay));
     }
   }
 
@@ -394,7 +420,7 @@ export async function withRetry<T>(
 export class DatabaseCircuitBreaker {
   private failures = 0;
   private lastFailureTime = 0;
-  private state: 'closed' | 'open' | 'half-open' = 'closed';
+  private state: "closed" | "open" | "half-open" = "closed";
 
   constructor(
     private options: {
@@ -412,29 +438,29 @@ export class DatabaseCircuitBreaker {
   }
 
   async execute<T>(operation: () => Promise<T>): Promise<T> {
-    if (this.state === 'open') {
+    if (this.state === "open") {
       if (Date.now() - this.lastFailureTime > this.options.recoveryTimeout!) {
-        this.state = 'half-open';
+        this.state = "half-open";
       } else {
-        throw new DatabaseConnectionError('Circuit breaker is open');
+        throw new DatabaseConnectionError("Circuit breaker is open");
       }
     }
 
     try {
       const result = await operation();
-      
-      if (this.state === 'half-open') {
-        this.state = 'closed';
+
+      if (this.state === "half-open") {
+        this.state = "closed";
         this.failures = 0;
       }
-      
+
       return result;
     } catch (error) {
       this.failures++;
       this.lastFailureTime = Date.now();
 
       if (this.failures >= this.options.failureThreshold!) {
-        this.state = 'open';
+        this.state = "open";
       }
 
       throw error;
@@ -451,7 +477,7 @@ export class DatabaseCircuitBreaker {
 
   reset(): void {
     this.failures = 0;
-    this.state = 'closed';
+    this.state = "closed";
     this.lastFailureTime = 0;
   }
 }

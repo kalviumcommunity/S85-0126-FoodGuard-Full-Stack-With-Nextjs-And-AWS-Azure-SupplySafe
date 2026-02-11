@@ -4,7 +4,7 @@ import { prisma } from "@/lib/prisma";
 
 /**
  * Home Page Statistics API
- * 
+ *
  * Returns public statistics for the homepage
  */
 export async function GET() {

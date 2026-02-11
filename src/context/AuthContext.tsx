@@ -38,8 +38,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     const getSession = async () => {
-      const { data: { session }, error } = await supabase.auth.getSession();
-      
+      const {
+        data: { session },
+        error,
+      } = await supabase.auth.getSession();
+
       if (error) {
         console.error("Session error:", error);
         setUser(null);
@@ -47,9 +50,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       } else if (session?.user) {
         const userObj = {
           id: session.user.id,
-          email: session.user.email || '',
-          name: session.user.user_metadata?.name || session.user.email?.split('@')[0] || '',
-          role: session.user.user_metadata?.role || 'USER'
+          email: session.user.email || "",
+          name:
+            session.user.user_metadata?.name ||
+            session.user.email?.split("@")[0] ||
+            "",
+          role: session.user.user_metadata?.role || "USER",
         };
         setUser(userObj);
         setSupabaseUser(session.user);
@@ -62,24 +68,27 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
     getSession();
 
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      (_event, session) => {
-        if (session?.user) {
-          const userObj = {
-            id: session.user.id,
-            email: session.user.email || '',
-            name: session.user.user_metadata?.name || session.user.email?.split('@')[0] || '',
-            role: session.user.user_metadata?.role || 'USER'
-          };
-          setUser(userObj);
-          setSupabaseUser(session.user);
-        } else {
-          setUser(null);
-          setSupabaseUser(null);
-        }
-        setIsLoading(false);
+    const {
+      data: { subscription },
+    } = supabase.auth.onAuthStateChange((_event, session) => {
+      if (session?.user) {
+        const userObj = {
+          id: session.user.id,
+          email: session.user.email || "",
+          name:
+            session.user.user_metadata?.name ||
+            session.user.email?.split("@")[0] ||
+            "",
+          role: session.user.user_metadata?.role || "USER",
+        };
+        setUser(userObj);
+        setSupabaseUser(session.user);
+      } else {
+        setUser(null);
+        setSupabaseUser(null);
       }
-    );
+      setIsLoading(false);
+    });
 
     return () => subscription.unsubscribe();
   }, []);
@@ -101,15 +110,18 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       if (data.user) {
         const userObj = {
           id: data.user.id,
-          email: data.user.email || '',
-          name: data.user.user_metadata?.name || data.user.email?.split('@')[0] || '',
-          role: data.user.user_metadata?.role || 'USER'
+          email: data.user.email || "",
+          name:
+            data.user.user_metadata?.name ||
+            data.user.email?.split("@")[0] ||
+            "",
+          role: data.user.user_metadata?.role || "USER",
         };
         setUser(userObj);
         setSupabaseUser(data.user);
         return { success: true, message: "Login successful" };
       }
-      
+
       return { success: false, message: "Login failed" };
     } catch (error) {
       return { success: false, message: "Login failed. Please try again." };
@@ -133,24 +145,27 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const refreshToken = async (): Promise<boolean> => {
     try {
       const { data, error } = await supabase.auth.refreshSession();
-      
+
       if (error) {
         await logout();
         return false;
       }
-      
+
       if (data.session) {
         const userObj = {
           id: data.session.user.id,
-          email: data.session.user.email || '',
-          name: data.session.user.user_metadata?.name || data.session.user.email?.split('@')[0] || '',
-          role: data.session.user.user_metadata?.role || 'USER'
+          email: data.session.user.email || "",
+          name:
+            data.session.user.user_metadata?.name ||
+            data.session.user.email?.split("@")[0] ||
+            "",
+          role: data.session.user.user_metadata?.role || "USER",
         };
         setUser(userObj);
         setSupabaseUser(data.session.user);
         return true;
       }
-      
+
       await logout();
       return false;
     } catch (error) {

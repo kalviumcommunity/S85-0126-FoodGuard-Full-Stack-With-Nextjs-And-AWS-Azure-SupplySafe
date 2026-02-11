@@ -100,10 +100,7 @@ export default function SignupPage() {
 
         <div>
           <label className="block mb-1 font-medium">Role</label>
-          <select
-            {...register("role")}
-            className="w-full border p-2 rounded"
-          >
+          <select {...register("role")} className="w-full border p-2 rounded">
             <option value="USER">User</option>
             <option value="SUPPLIER">Supplier</option>
             <option value="ADMIN">Admin</option>
@@ -113,9 +110,7 @@ export default function SignupPage() {
           )}
         </div>
 
-        {error && (
-          <p className="text-red-500 text-sm">{error}</p>
-        )}
+        {error && <p className="text-red-500 text-sm">{error}</p>}
 
         <button
           disabled={isSubmitting}
