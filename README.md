@@ -2259,4 +2259,26 @@ To ensure quality, I configured a global coverage threshold of **80%**. By focus
 ## 💭 Reflection
 Unit testing is the foundation of our deployment pipeline. By catching bugs at the function level, we reduce the cost of maintenance and prevent regressions. While integration tests (API) and E2E tests (User flows) are important, these unit tests provide the fastest feedback loop for developers.
 
+# 🏗️ FoodGuard System Architecture
+
+## 📋 System Overview
+FoodGuard is a full-stack supply chain safety platform built with Next.js and PostgreSQL. It utilizes a centralized API for administrative oversight and data management.
+
+* **Frontend/Backend:** Next.js (App Router) + TypeScript
+* **Database:** PostgreSQL via Prisma ORM
+* **Auth:** JWT-based Role-Based Access Control (RBAC)
+
+## 📂 Directory Structure
+Understanding this structure is key for onboarding new developers:
+- `src/app/api/admin/`: Contains the Admin Dashboard logic and Swagger documentation.
+- `src/lib/`: Shared utilities like the Prisma client and response handlers.
+- `src/components/`: Reusable UI components.
+
+## 🔄 Admin Data Flow
+
+1. Admin client sends a request with a JWT.
+2. Middleware verifies the token and injects `x-user-role` headers.
+3. The Admin API fetches parallel counts from the database using Prisma.
+4. Structured JSON is returned to the dashboard.
+
 ---
