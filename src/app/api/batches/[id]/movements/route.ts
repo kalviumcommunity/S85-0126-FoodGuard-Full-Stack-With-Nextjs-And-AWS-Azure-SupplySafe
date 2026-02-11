@@ -12,12 +12,13 @@ const createMovementSchema = z.object({
 });
 
 export async function GET(
-  request: NextRequest,
-  { params }: { params: { id: string } }
+  _request: NextRequest,
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const { id } = await params;
     const movements = await prisma.batchMovement.findMany({
-      where: { batchId: params.id },
+      where: { batchId: id },
       orderBy: { createdAt: 'desc' }
     });
 
@@ -33,15 +34,16 @@ export async function GET(
 
 export async function POST(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const { id } = await params;
     const body = await request.json();
     const validatedData = createMovementSchema.parse(body);
 
     // Verify batch exists
     const batch = await prisma.batch.findUnique({
-      where: { id: params.id }
+      where: { id }
     });
 
     if (!batch) {
@@ -54,7 +56,7 @@ export async function POST(
     // Create movement record
     const movement = await prisma.batchMovement.create({
       data: {
-        batchId: params.id,
+        batchId: id,
         ...validatedData
       }
     });
@@ -72,7 +74,7 @@ export async function POST(
 
     if (Object.keys(updateData).length > 0) {
       await prisma.batch.update({
-        where: { id: params.id },
+        where: { id },
         data: updateData
       });
     }
@@ -82,7 +84,7 @@ export async function POST(
     console.error('Error creating movement:', error);
     if (error instanceof z.ZodError) {
       return NextResponse.json(
-        { error: 'Validation failed', details: error.errors },
+        { error: 'Validation failed', details: error.issues },
         { status: 400 }
       );
     }
