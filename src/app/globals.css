@@ -10,7 +10,7 @@
   --accent: #FF9F1C;
   --accent-foreground: #ffffff;
   --muted: #6B7280;
-  --muted-foreground: #9CA3AF;
+  --muted-foreground: #374151;
   --border: #E5E7EB;
   --input: #FFFFFF;
   --card: #FFFFFF;
@@ -20,27 +20,6 @@
   --warning: #F59E0B;
   --success: #10B981;
   --info: #3B82F6;
-}
-
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --color-primary: var(--primary);
-  --color-primary-foreground: var(--primary-foreground);
-  --color-secondary: var(--secondary);
-  --color-secondary-foreground: var(--secondary-foreground);
-  --color-accent: var(--accent);
-  --color-accent-foreground: var(--accent-foreground);
-  --color-muted: var(--muted);
-  --color-muted-foreground: var(--muted-foreground);
-  --color-border: var(--border);
-  --color-input: var(--input);
-  --color-card: var(--card);
-  --color-card-foreground: var(--card-foreground);
-  --color-destructive: var(--destructive);
-  --color-destructive-foreground: var(--destructive-foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
 }
 
 @media (prefers-color-scheme: dark) {
@@ -69,39 +48,38 @@
 body {
   background: var(--background);
   color: var(--foreground);
-  font-family: var(--font-sans), -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  font-family: var(--font-geist-sans), -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
   font-feature-settings: "rlig" 1, "calt" 1;
 }
 
-/* Custom scrollbar styles */
-::-webkit-scrollbar {
-  width: 6px;
-  height: 6px;
+/* Fix text visibility issues */
+.text-gray-500 {
+  color: #6B7280 !important;
 }
 
-::-webkit-scrollbar-track {
-  background: var(--muted);
+.text-gray-600 {
+  color: #4B5563 !important;
 }
 
-::-webkit-scrollbar-thumb {
-  background: var(--muted-foreground);
-  border-radius: 3px;
+.text-gray-700 {
+  color: #374151 !important;
 }
 
-::-webkit-scrollbar-thumb:hover {
-  background: var(--primary);
+.text-gray-900 {
+  color: #111827 !important;
 }
 
-/* Focus styles */
-*:focus-visible {
-  outline: 2px solid var(--primary);
-  outline-offset: 2px;
+.text-sm {
+  font-size: 0.875rem;
 }
 
-/* Selection styles */
-::selection {
-  background: var(--primary);
-  color: var(--primary-foreground);
+.text-xs {
+  font-size: 0.75rem;
+}
+
+/* Ensure proper contrast for headers */
+h1, h2, h3, h4, h5, h6 {
+  color: var(--foreground);
 }
 
 /* Enterprise-grade transitions */

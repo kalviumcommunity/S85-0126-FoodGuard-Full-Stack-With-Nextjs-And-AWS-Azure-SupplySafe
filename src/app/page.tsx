@@ -1,10 +1,10 @@
 "use client";
 import Link from "next/link";
-import { AppShell } from "@/components/layout/app-shell";
 import { MetricsCard } from "@/components/dashboard/metrics-card";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { useState, useEffect } from "react";
 import {
   Package,
   ChefHat,
@@ -19,10 +19,57 @@ import {
   LayoutDashboard,
 } from "lucide-react";
 
+interface HomeStats {
+  totalUsers: number;
+  totalSuppliers: number;
+  verifiedSuppliers: number;
+  totalProducts: number;
+  totalOrders: number;
+  pendingOrders: number;
+  completedOrders: number;
+  systemUptime: string;
+  activeRoutes: number;
+  kitchensOnline: number;
+  hygieneScore: string;
+  openComplaints: number;
+  dailyTransactions: number;
+  lastUpdated: string;
+}
+
 export default function Home() {
+  const [stats, setStats] = useState<HomeStats | null>(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    fetchHomeStats();
+  }, []);
+
+  const fetchHomeStats = async () => {
+    try {
+      const response = await fetch('/api/home/stats');
+      if (response.ok) {
+        const data = await response.json();
+        setStats(data.data);
+      }
+    } catch (error) {
+      console.error('Failed to fetch home stats:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="text-lg">Loading...</div>
+      </div>
+    );
+  }
+
   return (
-    <AppShell>
-      <div className="space-y-8">
+    <div className="min-h-screen bg-[#F7F9FC]">
+      <div className="p-6">
+        <div className="space-y-8">
         {/* System Header */}
         <div className="bg-white rounded-lg border border-gray-200 p-8">
           <div className="text-center space-y-4">
@@ -58,19 +105,19 @@ export default function Home() {
           </div>
         </div>
 
-        {/* Key Metrics Overview */}
+        {/* Real Key Metrics Overview */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
           <MetricsCard
             title="Active Food Batches"
-            value="127"
-            description="Currently in transit"
+            value={stats?.totalOrders?.toString() || "0"}
+            description="Currently in system"
             icon={Package}
             trend={{ value: "12.5%", isPositive: true }}
             status="success"
           />
           <MetricsCard
             title="Kitchens Live"
-            value="43"
+            value={stats?.kitchensOnline?.toString() || "0"}
             description="Operational now"
             icon={ChefHat}
             trend={{ value: "2.1%", isPositive: true }}
@@ -78,15 +125,15 @@ export default function Home() {
           />
           <MetricsCard
             title="Hygiene Score"
-            value="83.7%"
+            value={stats?.hygieneScore || "N/A"}
             description="Average compliance"
             icon={Shield}
             trend={{ value: "5.2%", isPositive: false }}
             status="warning"
           />
           <MetricsCard
-            title="Open Complaints"
-            value="8"
+            title="Pending Orders"
+            value={stats?.pendingOrders?.toString() || "0"}
             description="Requires attention"
             icon={AlertTriangle}
             trend={{ value: "18.3%", isPositive: false }}
@@ -94,7 +141,7 @@ export default function Home() {
           />
         </div>
 
-        {/* Quick Actions */}
+        {/* Real System Overview */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
           <Card>
             <CardHeader>
@@ -106,21 +153,21 @@ export default function Home() {
             <CardContent className="space-y-4">
               <div className="grid grid-cols-2 gap-4">
                 <div className="text-center p-4 bg-gray-50 rounded-lg">
-                  <div className="text-2xl font-bold text-gray-900">99.8%</div>
+                  <div className="text-2xl font-bold text-gray-900">{stats?.systemUptime || "N/A"}</div>
                   <div className="text-sm text-gray-600">System Uptime</div>
                 </div>
                 <div className="text-center p-4 bg-gray-50 rounded-lg">
-                  <div className="text-2xl font-bold text-gray-900">2,847</div>
+                  <div className="text-2xl font-bold text-gray-900">{stats?.dailyTransactions?.toLocaleString() || "0"}</div>
                   <div className="text-sm text-gray-600">
                     Daily Transactions
                   </div>
                 </div>
                 <div className="text-center p-4 bg-gray-50 rounded-lg">
-                  <div className="text-2xl font-bold text-gray-900">127</div>
+                  <div className="text-2xl font-bold text-gray-900">{stats?.activeRoutes || "0"}</div>
                   <div className="text-sm text-gray-600">Active Routes</div>
                 </div>
                 <div className="text-center p-4 bg-gray-50 rounded-lg">
-                  <div className="text-2xl font-bold text-gray-900">43</div>
+                  <div className="text-2xl font-bold text-gray-900">{stats?.kitchensOnline || "0"}</div>
                   <div className="text-sm text-gray-600">Kitchens Online</div>
                 </div>
               </div>
@@ -140,7 +187,7 @@ export default function Home() {
             <CardHeader>
               <CardTitle className="flex items-center space-x-2">
                 <FileText className="w-5 h-5" />
-                <span>Recent Activity</span>
+                <span>Platform Statistics</span>
               </CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
@@ -150,24 +197,10 @@ export default function Home() {
                     <div className="w-2 h-2 bg-green-500 rounded-full"></div>
                     <div>
                       <p className="text-sm font-medium text-gray-900">
-                        Batch BATCH-7845 delivered
+                        {stats?.totalUsers?.toLocaleString() || "0"} Registered Users
                       </p>
                       <p className="text-xs text-gray-500">
-                        Mumbai to Pune - 2 hours ago
-                      </p>
-                    </div>
-                  </div>
-                </div>
-
-                <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
-                  <div className="flex items-center space-x-3">
-                    <div className="w-2 h-2 bg-amber-500 rounded-full"></div>
-                    <div>
-                      <p className="text-sm font-medium text-gray-900">
-                        Hygiene inspection scheduled
-                      </p>
-                      <p className="text-xs text-gray-500">
-                        Pune Kitchen - 4 hours ago
+                        Including {stats?.verifiedSuppliers || "0"} verified suppliers
                       </p>
                     </div>
                   </div>
@@ -178,10 +211,24 @@ export default function Home() {
                     <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
                     <div>
                       <p className="text-sm font-medium text-gray-900">
-                        New supplier registered
+                        {stats?.totalProducts?.toLocaleString() || "0"} Products Available
                       </p>
                       <p className="text-xs text-gray-500">
-                        Fresh Foods Ltd - 6 hours ago
+                        Across all suppliers
+                      </p>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                  <div className="flex items-center space-x-3">
+                    <div className="w-2 h-2 bg-amber-500 rounded-full"></div>
+                    <div>
+                      <p className="text-sm font-medium text-gray-900">
+                        {stats?.completedOrders?.toLocaleString() || "0"} Orders Completed
+                      </p>
+                      <p className="text-xs text-gray-500">
+                        Successfully delivered
                       </p>
                     </div>
                   </div>
@@ -249,7 +296,7 @@ export default function Home() {
           </Link>
         </div>
 
-        {/* System Status Footer */}
+        {/* Real System Status Footer */}
         <Card>
           <CardContent className="p-6">
             <div className="flex items-center justify-between">
@@ -261,27 +308,28 @@ export default function Home() {
                   </span>
                 </div>
                 <div className="text-sm text-gray-500">
-                  Last updated: 2 minutes ago
+                  Last updated: {stats ? new Date(stats.lastUpdated).toLocaleTimeString() : "N/A"}
                 </div>
               </div>
               <div className="flex items-center space-x-6 text-sm text-gray-600">
                 <div className="flex items-center space-x-1">
                   <Train className="w-4 h-4" />
-                  <span>127 Active Routes</span>
+                  <span>{stats?.activeRoutes || "0"} Active Routes</span>
                 </div>
                 <div className="flex items-center space-x-1">
                   <Users className="w-4 h-4" />
-                  <span>43 Kitchens Online</span>
+                  <span>{stats?.kitchensOnline || "0"} Kitchens Online</span>
                 </div>
                 <div className="flex items-center space-x-1">
                   <Shield className="w-4 h-4" />
-                  <span>99.8% Uptime</span>
+                  <span>{stats?.systemUptime || "N/A"} Uptime</span>
                 </div>
               </div>
             </div>
           </CardContent>
         </Card>
       </div>
-    </AppShell>
+    </div>
+    </div>
   );
 }
