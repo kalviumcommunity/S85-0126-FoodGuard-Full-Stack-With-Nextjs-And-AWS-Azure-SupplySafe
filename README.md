@@ -35,7 +35,7 @@ npm run dev
 Open [http://localhost:3000](http://localhost:3000) in your browser.
 ## 🚀 Live Demo
 
-[![Live Demo](https://img.shields.io/badge/Live-Demo-brightgreen?style=for-the-badge&logo=vercel)](https://supplysafe-blond.vercel.app/dashboard)
+[![Live Demo](https://img.shields.io/badge/Live-Demo-brightgreen?style=for-the-badge&logo=vercel)](https://supplysafe-blond.vercel.app/login)
 
 ---
 
